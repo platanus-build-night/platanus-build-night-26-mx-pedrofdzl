@@ -5,3 +5,8 @@ PLAN.md
 
 # Tooling caches
 .ruff_cache/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
