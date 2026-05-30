@@ -1,0 +1,176 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-bevel-light: var(--bevel-light);
+  --color-bevel-dark: var(--bevel-dark);
+  --radius-sm: 0px;
+  --radius-md: 1px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 3px;
+  --radius-3xl: 3px;
+  --radius-4xl: 4px;
+}
+
+/*
+  Enterprise-beige theme: 90s institutional software.
+  Warm beige panels, navy accents, beveled borders, near-zero radius.
+*/
+:root {
+  --background: #d7d2c4;
+  --foreground: #23282e;
+  --card: #edeae0;
+  --card-foreground: #23282e;
+  --popover: #f2efe6;
+  --popover-foreground: #23282e;
+  --primary: #1b3a5c;
+  --primary-foreground: #f2efe6;
+  --secondary: #c9c3b2;
+  --secondary-foreground: #23282e;
+  --muted: #dad5c7;
+  --muted-foreground: #6b6553;
+  --accent: #2e5a86;
+  --accent-foreground: #f2efe6;
+  --destructive: #8c2b22;
+  --success: #3d6e4a;
+  --success-foreground: #f2efe6;
+  --warning: #9a6a00;
+  --warning-foreground: #f7f2e3;
+  --border: #a89f8c;
+  --input: #fbf9f2;
+  --ring: #2e5a86;
+  --chart-1: #1b3a5c;
+  --chart-2: #8c2b22;
+  --chart-3: #6e7b3d;
+  --chart-4: #b08400;
+  --chart-5: #4a5560;
+  --radius: 2px;
+  --bevel-light: #fbf9f2;
+  --bevel-dark: #8e8676;
+  --font-sans: Tahoma, Verdana, Geneva, "DejaVu Sans", "Segoe UI", sans-serif;
+}
+
+/* Single committed theme: dark maps to the same beige palette. */
+.dark {
+  --background: #d7d2c4;
+  --foreground: #23282e;
+  --card: #edeae0;
+  --card-foreground: #23282e;
+  --popover: #f2efe6;
+  --popover-foreground: #23282e;
+  --primary: #1b3a5c;
+  --primary-foreground: #f2efe6;
+  --secondary: #c9c3b2;
+  --secondary-foreground: #23282e;
+  --muted: #dad5c7;
+  --muted-foreground: #6b6553;
+  --accent: #2e5a86;
+  --accent-foreground: #f2efe6;
+  --destructive: #8c2b22;
+  --success: #3d6e4a;
+  --success-foreground: #f2efe6;
+  --warning: #9a6a00;
+  --warning-foreground: #f7f2e3;
+  --border: #a89f8c;
+  --input: #fbf9f2;
+  --ring: #2e5a86;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    /* faint paper grain */
+    background-image: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.012) 0px,
+      rgba(0, 0, 0, 0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+  html {
+    @apply font-sans;
+  }
+  /* monospace for any code/identifier emphasis */
+  code,
+  kbd,
+  samp,
+  .mono {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer components {
+  /* raised (button-like) bevel, classic Win95 chrome */
+  .bevel {
+    border-width: 2px;
+    border-style: solid;
+    border-top-color: var(--bevel-light);
+    border-left-color: var(--bevel-light);
+    border-right-color: var(--bevel-dark);
+    border-bottom-color: var(--bevel-dark);
+  }
+  /* pressed / sunken bevel for inputs, wells, active state */
+  .bevel-inset {
+    border-width: 2px;
+    border-style: solid;
+    border-top-color: var(--bevel-dark);
+    border-left-color: var(--bevel-dark);
+    border-right-color: var(--bevel-light);
+    border-bottom-color: var(--bevel-light);
+  }
+  .bevel-active:active {
+    border-top-color: var(--bevel-dark);
+    border-left-color: var(--bevel-dark);
+    border-right-color: var(--bevel-light);
+    border-bottom-color: var(--bevel-light);
+  }
+  /* title bar gradient used on window chrome */
+  .titlebar {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+    color: var(--primary-foreground);
+  }
+  /* dotted focus ring like old dialog controls */
+  .legacy-focus:focus-visible {
+    outline: 1px dotted var(--foreground);
+    outline-offset: -3px;
+  }
+}
