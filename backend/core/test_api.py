@@ -1,6 +1,9 @@
+import tempfile
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -54,3 +57,28 @@ class ResourceApiTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data["text"], "Yes.")
         self.assertEqual(len(res.data["cited_facts"]), 1)
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class QuestionnaireUploadTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email="upload@bank.com", password="supersecret123")
+        self.client.force_authenticate(self.user)
+
+    def test_upload_then_ingest_creates_requirements(self):
+        csv = SimpleUploadedFile(
+            "q.csv",
+            b"Question\nDo you encrypt at rest?\nIs MFA enforced?\n",
+            content_type="text/csv",
+        )
+        created = self.client.post(
+            "/api/v1/questionnaires/",
+            {"source_name": "Bank B", "raw_file": csv},
+            format="multipart",
+        )
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+
+        ingested = self.client.post(f"/api/v1/questionnaires/{created.data['id']}/ingest/")
+
+        self.assertEqual(ingested.status_code, status.HTTP_200_OK)
+        self.assertEqual(ingested.data["requirements"], 2)
