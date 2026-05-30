@@ -1,4 +1,4 @@
-<img src="./project-logo.svg" alt="Ditto" width="96" />
+<img src="./project-logo.png" alt="Ditto" width="96" />
 
 # Ditto
 
