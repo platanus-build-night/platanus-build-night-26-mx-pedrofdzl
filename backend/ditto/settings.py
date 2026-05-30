@@ -14,6 +14,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +27,7 @@ env = environ.Env(
         list,
         ["http://localhost:3000", "http://127.0.0.1:3000"],
     ),
+    CSRF_TRUSTED_ORIGINS=(list, []),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -43,6 +45,13 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
+
+CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+
+# Behind a TLS-terminating reverse proxy (Caddy), trust the forwarded scheme
+# and host so request.is_secure() and absolute URLs reflect the real HTTPS origin.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 
 # Application definition
@@ -169,6 +178,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "core.exceptions.api_exception_handler",
 }
 
 SIMPLE_JWT = {
@@ -188,8 +198,16 @@ EMBEDDING_MODEL = env("EMBEDDING_MODEL", default="text-embedding-3-small")
 
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 ANTHROPIC_MODEL = env("ANTHROPIC_MODEL", default="claude-sonnet-4-6")
+ANTHROPIC_LIGHT_MODEL = env("ANTHROPIC_LIGHT_MODEL", default="claude-haiku-4-5")
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/1")
 CELERY_TASK_TRACK_STARTED = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULE = {
+    "sweep-stale-facts": {
+        "task": "core.tasks.sweep_stale_facts_task",
+        "schedule": crontab(hour=6, minute=0),
+    },
+}
