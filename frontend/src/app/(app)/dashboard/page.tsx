@@ -26,23 +26,25 @@ export default function DashboardPage() {
   ).map(([name, value]) => ({ name, value }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-xl font-semibold tracking-tight">
             Living Tracker
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Posture across 3 banks · {total} requirements ingested
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">Import Questionnaire</Button>
-          <Button>Run Audit</Button>
+          <Button variant="outline" size="sm">
+            Import Questionnaire
+          </Button>
+          <Button size="sm">Run Audit</Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Requirements" value={total} hint="across 3 banks" />
         <Stat
           label="Answered"
@@ -64,7 +66,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-3 lg:grid-cols-3">
         <Window title="Fact Coverage by Category" className="lg:col-span-2">
           <CoverageChart />
         </Window>

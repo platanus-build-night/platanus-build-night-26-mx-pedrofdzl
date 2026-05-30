@@ -36,6 +36,7 @@
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-brand: var(--brand);
+  --color-sidebar: var(--sidebar);
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;
@@ -50,8 +51,9 @@
   Sharp corners everywhere. Light and dark via next-themes (class).
 */
 :root {
-  --background: #fafaf9;
+  --background: #ffffff;
   --foreground: #1c1c1a;
+  --sidebar: #f4f3f1;
   --card: #ffffff;
   --card-foreground: #1c1c1a;
   --popover: #ffffff;
@@ -84,6 +86,7 @@
 .dark {
   --background: #141415;
   --foreground: #ededeb;
+  --sidebar: #1a1a1c;
   --card: #1c1c1e;
   --card-foreground: #ededeb;
   --popover: #1f1f21;

@@ -7,8 +7,8 @@ import { requirements } from "@/lib/mock";
 
 export default function RequirementsPage() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Requirements</h1>
+    <div className="space-y-4">
+      <h1 className="text-xl font-semibold tracking-tight">Requirements</h1>
       <Window title="All Requirements">
         <DataTable
           columns={requirementColumns}

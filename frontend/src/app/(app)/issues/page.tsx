@@ -7,8 +7,8 @@ import { issues } from "@/lib/mock";
 
 export default function IssuesPage() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Issue Tracker</h1>
+    <div className="space-y-4">
+      <h1 className="text-xl font-semibold tracking-tight">Issue Tracker</h1>
       <Window title="All Issues">
         <DataTable
           columns={issueColumns}

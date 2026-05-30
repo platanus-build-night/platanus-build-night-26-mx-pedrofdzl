@@ -70,7 +70,7 @@ export function DataTable<T>({
                   <TableHead
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className="h-10 cursor-pointer text-xs font-medium tracking-wide text-muted-foreground uppercase select-none"
+                    className="h-9 cursor-pointer text-xs font-medium tracking-wide text-muted-foreground uppercase select-none"
                   >
                     {header.isPlaceholder
                       ? null
@@ -94,7 +94,7 @@ export function DataTable<T>({
                   className="border-border hover:bg-muted/40"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-2.5 align-middle">
+                    <TableCell key={cell.id} className="py-2 align-middle">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

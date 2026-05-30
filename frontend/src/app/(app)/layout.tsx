@@ -41,9 +41,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-full">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
-        <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-          <span className="grid size-6 place-items-center bg-brand text-sm font-bold text-white">
+      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
+        <div className="flex h-12 items-center gap-2 border-b border-border px-3">
+          <span className="grid size-5 place-items-center bg-brand text-xs font-bold text-white">
             D
           </span>
           <span className="text-sm font-semibold tracking-tight">Ditto</span>
@@ -58,10 +58,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2.5 border-l-2 px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-2.5 px-2.5 py-1.5 text-sm transition-colors",
                   active
-                    ? "border-brand bg-accent font-medium text-foreground"
-                    : "border-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                    ? "bg-accent font-medium text-foreground"
+                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                 )}
               >
                 <Icon className="size-4" />
@@ -75,7 +75,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Link
             href="/account"
             className={cn(
-              "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+              "flex items-center gap-2 px-2.5 py-1.5 text-sm transition-colors",
               pathname.startsWith("/account")
                 ? "font-medium text-foreground"
                 : "text-muted-foreground hover:text-foreground",
@@ -86,7 +86,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </span>
             <span className="min-w-0 truncate">{user.email}</span>
           </Link>
-          <div className="mt-1 flex items-center gap-1">
+          <div className="mt-0.5 flex items-center gap-1">
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -102,8 +102,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center gap-2 border-b border-border px-4 md:hidden">
-          <span className="grid size-6 place-items-center bg-brand text-sm font-bold text-white">
+        <header className="flex h-12 items-center gap-2 border-b border-border px-4 md:hidden">
+          <span className="grid size-5 place-items-center bg-brand text-xs font-bold text-white">
             D
           </span>
           <span className="text-sm font-semibold tracking-tight">Ditto</span>
@@ -111,7 +111,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
           </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
           {children}
         </main>
       </div>

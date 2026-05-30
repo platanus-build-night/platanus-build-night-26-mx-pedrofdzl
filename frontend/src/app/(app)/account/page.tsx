@@ -52,8 +52,8 @@ export default function AccountPage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+    <div className="max-w-3xl space-y-4">
+      <h1 className="text-xl font-semibold tracking-tight">Account</h1>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Stat label="Operator" value={<span className="text-base">{user.email}</span>} />

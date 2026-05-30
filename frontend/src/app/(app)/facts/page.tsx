@@ -4,8 +4,8 @@ import { Window } from "@/components/window";
 
 export default function FactsPage() {
   return (
-    <div className="max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Fact Base</h1>
+    <div className="max-w-3xl space-y-4">
+      <h1 className="text-xl font-semibold tracking-tight">Fact Base</h1>
       <Window title="Evidence & Facts">
         <div className="space-y-3 text-sm text-muted-foreground">
           <p>
