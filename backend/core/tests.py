@@ -12,9 +12,11 @@ from core.models import (
     EvidenceDoc,
     Fact,
     FactCitation,
+    Issue,
     Questionnaire,
     Requirement,
 )
+from core.services.auditor import audit_answer
 from core.services.ingest import ingest_document
 from core.services.questionnaire_ingest import ingest_questionnaire
 from core.services.responder import answer_requirement
@@ -93,3 +95,30 @@ class ResponderTests(TestCase):
         self.assertEqual(answer.confidence, 0.9)
         self.assertTrue(AnswerCitation.objects.filter(answer=answer, fact=fact).exists())
         self.assertEqual(Answer.objects.count(), 1)
+
+
+class AuditorTests(TestCase):
+    def _answer(self, text):
+        questionnaire = Questionnaire.objects.create(source_name="Bank A")
+        requirement = Requirement.objects.create(questionnaire=questionnaire, text="Question?")
+        return Answer.objects.create(requirement=requirement, text=text)
+
+    def test_answer_without_citations_is_flagged_unbacked(self):
+        issues = audit_answer(self._answer("Yes, we do."))
+
+        self.assertEqual(len(issues), 1)
+        self.assertEqual(issues[0].type, Issue.Type.UNBACKED)
+
+    @patch("core.services.auditor.review_answer")
+    def test_contradiction_finding_creates_issue(self, mock_review):
+        answer = self._answer("Yes, we use SMS 2FA.")
+        fact = Fact.objects.create(statement="SMS 2FA is not used", embedding=unit_vector(0))
+        AnswerCitation.objects.create(answer=answer, fact=fact)
+        mock_review.return_value = [
+            {"type": "contradiction", "description": "Answer contradicts the cited fact."}
+        ]
+
+        issues = audit_answer(answer)
+
+        self.assertEqual(len(issues), 1)
+        self.assertEqual(issues[0].type, Issue.Type.CONTRADICTION)
