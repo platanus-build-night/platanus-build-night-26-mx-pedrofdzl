@@ -62,7 +62,7 @@ export function TopBar() {
           onClick={toggle}
         >
           <Sparkles className="size-4" />
-          Copilot
+          Chat
         </Button>
       </div>
     </div>

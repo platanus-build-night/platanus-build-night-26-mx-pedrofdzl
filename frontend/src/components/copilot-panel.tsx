@@ -75,10 +75,10 @@ export function CopilotPanel() {
   if (!open) return null;
 
   return (
-    <aside className="fixed inset-y-0 right-0 z-40 flex w-full max-w-md flex-col border-l border-border bg-card shadow-xl">
+    <aside className="sticky top-0 flex h-screen w-96 shrink-0 flex-col border-l border-border bg-card">
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-border px-4">
-        <span className="text-sm font-medium tracking-tight">Compliance Copilot</span>
-        <Button variant="ghost" size="icon" aria-label="Close copilot" onClick={() => setOpen(false)}>
+        <span className="text-sm font-medium tracking-tight">Chat</span>
+        <Button variant="ghost" size="icon" aria-label="Close chat" onClick={() => setOpen(false)}>
           <X className="size-4" />
         </Button>
       </header>
@@ -139,7 +139,7 @@ export function CopilotPanel() {
         <Input
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Ask the copilot..."
+          placeholder="Ask Ditto..."
           disabled={streaming}
         />
         <Button type="submit" size="icon" disabled={streaming || !input.trim()}>
