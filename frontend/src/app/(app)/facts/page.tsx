@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -17,14 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Window } from "@/components/window";
-import { useAnalysis } from "@/lib/analysis-ui";
-import {
-  analyzeDocument,
-  createTextDocument,
-  listDocuments,
-  listFacts,
-  type FactStatus,
-} from "@/lib/resources";
+import { listFacts, type FactStatus } from "@/lib/resources";
+import { cn } from "@/lib/utils";
 
 const statusVariant: Record<FactStatus, "success" | "warning" | "secondary" | "destructive"> = {
   approved: "success",
@@ -33,98 +25,52 @@ const statusVariant: Record<FactStatus, "success" | "warning" | "secondary" | "d
   stale: "warning",
 };
 
+const FILTERS = [
+  { key: "", label: "All" },
+  { key: "candidate", label: "Candidate" },
+  { key: "approved", label: "Approved" },
+  { key: "rejected", label: "Rejected" },
+];
+
 export default function FactBasePage() {
-  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [docName, setDocName] = useState("");
-  const [docContent, setDocContent] = useState("");
+  const [status, setStatus] = useState("");
 
   const facts = useQuery({
-    queryKey: ["facts", search],
-    queryFn: () => listFacts({ search: search || undefined }),
-  });
-  const docs = useQuery({ queryKey: ["documents"], queryFn: () => listDocuments() });
-
-  const addDoc = useMutation({
-    mutationFn: () => createTextDocument({ name: docName, content: docContent }),
-    onSuccess: () => {
-      toast.success("Document added.");
-      setDocName("");
-      setDocContent("");
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
-    },
-    onError: (error) => toast.error((error as Error).message),
-  });
-
-  const { track } = useAnalysis();
-  const ingest = useMutation({
-    mutationFn: (docId: number) => analyzeDocument(docId),
-    onSuccess: (job) => track(job.id),
-    onError: (error) => toast.error((error as Error).message),
+    queryKey: ["facts", search, status],
+    queryFn: () => listFacts({ search: search || undefined, status: status || undefined }),
   });
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold tracking-tight">Fact Base</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-xl font-semibold tracking-tight">Fact Base</h1>
+        <Input
+          placeholder="Search facts..."
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="max-w-xs"
+        />
+      </div>
 
-      <Window title="Evidence documents">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (docName && docContent) addDoc.mutate();
-          }}
-          className="space-y-2"
-        >
-          <Input
-            placeholder="Document name (e.g. Security Policy)"
-            value={docName}
-            onChange={(event) => setDocName(event.target.value)}
-          />
-          <textarea
-            placeholder="Paste policy or security document content..."
-            value={docContent}
-            onChange={(event) => setDocContent(event.target.value)}
-            className="min-h-28 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
-          />
-          <Button type="submit" disabled={addDoc.isPending || !docName || !docContent}>
-            {addDoc.isPending ? "Adding..." : "Add document"}
-          </Button>
-        </form>
+      <div className="flex w-fit overflow-hidden rounded-md border border-border">
+        {FILTERS.map((filter) => (
+          <button
+            key={filter.key}
+            onClick={() => setStatus(filter.key)}
+            className={cn(
+              "px-3 py-1 text-xs transition-colors",
+              status === filter.key
+                ? "bg-accent text-foreground"
+                : "text-muted-foreground hover:bg-accent/50",
+            )}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
 
-        <div className="mt-3 space-y-1.5">
-          {docs.data?.results.map((doc) => (
-            <div
-              key={doc.id}
-              className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-sm"
-            >
-              <span className="truncate">{doc.name}</span>
-              <Button
-                variant="tertiary"
-                size="sm"
-                onClick={() => ingest.mutate(doc.id)}
-                disabled={ingest.isPending && ingest.variables === doc.id}
-              >
-                {ingest.isPending && ingest.variables === doc.id ? "Ingesting..." : "Ingest"}
-              </Button>
-            </div>
-          ))}
-          {docs.data && docs.data.results.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No documents yet.</p>
-          ) : null}
-        </div>
-      </Window>
-
-      <Window
-        title={`Facts${facts.data ? ` (${facts.data.count})` : ""}`}
-        actions={
-          <Input
-            placeholder="Search facts..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="h-8 w-48"
-          />
-        }
-      >
+      <Window title={`Facts${facts.data ? ` (${facts.data.count})` : ""}`}>
         {facts.isLoading ? (
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, index) => (
@@ -158,7 +104,7 @@ export default function FactBasePage() {
           </Table>
         ) : (
           <p className="text-sm text-muted-foreground">
-            No facts yet. Add an evidence document above and ingest it.
+            No facts. Add and analyze a document to populate the fact base.
           </p>
         )}
       </Window>
