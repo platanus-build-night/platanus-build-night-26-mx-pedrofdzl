@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCopilot } from "@/lib/copilot-ui";
 
@@ -25,7 +25,7 @@ export function TopBar() {
   const { toggle, open } = useCopilot();
 
   return (
-    <div className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b border-border bg-background px-4 sm:px-6">
+    <div className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b border-border bg-background pl-4 pr-2.5 sm:pl-6">
       <nav className="flex items-center gap-1.5 text-sm">
         <Link
           href="/dashboard"
@@ -61,7 +61,7 @@ export function TopBar() {
           className="gap-1.5"
           onClick={toggle}
         >
-          <Sparkles className="size-4" />
+          <MessageSquare className="size-4" />
           Chat
         </Button>
       </div>
