@@ -143,6 +143,12 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# Media files use local filesystem storage in dev and prod. We intentionally
+# do not use S3 or other cloud storage given the scope of this project; swap
+# the storage backend here if that changes.
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

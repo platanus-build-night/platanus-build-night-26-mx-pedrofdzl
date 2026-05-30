@@ -62,6 +62,8 @@ def _extract_questions(rows):
 def ingest_questionnaire(questionnaire, file_obj=None, filename=None):
     file_obj = file_obj if file_obj is not None else questionnaire.raw_file
     filename = filename or getattr(file_obj, "name", "")
+    if hasattr(file_obj, "open"):
+        file_obj.open("rb")
     requirements = [
         Requirement(
             questionnaire=questionnaire,

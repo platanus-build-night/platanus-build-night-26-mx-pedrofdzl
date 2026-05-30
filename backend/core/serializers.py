@@ -13,7 +13,15 @@ from core.models import (
 class EvidenceDocSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvidenceDoc
-        fields = ["id", "name", "content", "style_guide_section", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "name",
+            "content",
+            "source_file",
+            "style_guide_section",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class FactSerializer(serializers.ModelSerializer):
@@ -31,7 +39,7 @@ class CitedFactSerializer(serializers.ModelSerializer):
 class QuestionnaireSerializer(serializers.ModelSerializer):
     class Meta:
         model = Questionnaire
-        fields = ["id", "source_name", "due_date", "status", "uploaded_at"]
+        fields = ["id", "source_name", "raw_file", "due_date", "status", "uploaded_at"]
 
 
 class RequirementSerializer(serializers.ModelSerializer):
