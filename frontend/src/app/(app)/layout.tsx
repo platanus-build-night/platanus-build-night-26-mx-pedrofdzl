@@ -61,16 +61,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
           <div className="flex h-12 items-center gap-2.5 px-4">
             <Image src="/ditto.png" alt="Ditto" width={24} height={24} className="size-6 rounded-md" />
-            <div className="flex flex-col leading-none">
-              <span className="text-sm tracking-tight">Ditto</span>
-              <span className="text-[11px] text-muted-foreground">Compliance</span>
-            </div>
+            <span className="text-sm tracking-tight">Ditto</span>
           </div>
 
           <nav className="flex-1 px-2 py-2">
-            <p className="px-2.5 pb-1.5 text-[11px] tracking-wider text-muted-foreground/70 uppercase">
-              Workspace
-            </p>
             <div className="space-y-0.5">
               {NAV.map((item) => {
                 const active = pathname.startsWith(item.href);
@@ -99,7 +93,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </nav>
 
-          <div className="border-t border-border p-2">
+          <div className="p-2">
             <DropdownMenu>
               <DropdownMenuTrigger className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent">
                 <span className="grid size-7 shrink-0 place-items-center rounded-md border border-border bg-background text-xs">
