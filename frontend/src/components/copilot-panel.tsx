@@ -76,7 +76,7 @@ export function CopilotPanel() {
 
   return (
     <aside className="sticky top-0 flex h-screen w-96 shrink-0 flex-col border-l border-border bg-card">
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-border px-4">
+      <header className="flex h-12 shrink-0 items-center justify-between border-b border-border pl-4 pr-2">
         <span className="text-sm font-medium tracking-tight">Chat</span>
         <Button variant="ghost" size="icon" aria-label="Close chat" onClick={() => setOpen(false)}>
           <X className="size-4" />
