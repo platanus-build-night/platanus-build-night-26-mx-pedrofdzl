@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
                 ("confidence", models.FloatField(blank=True, null=True)),
                 (
                     "embedding",
-                    pgvector.django.vector.VectorField(blank=True, dimensions=1024, null=True),
+                    pgvector.django.vector.VectorField(blank=True, dimensions=1536, null=True),
                 ),
                 ("review_by", models.DateField(blank=True, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),

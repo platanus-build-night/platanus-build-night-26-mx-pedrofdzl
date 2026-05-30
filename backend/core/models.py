@@ -1,7 +1,7 @@
 from django.db import models
 from pgvector.django import HnswIndex, VectorField
 
-EMBEDDING_DIM = 1024  # must match the embedding model output (voyage-3 = 1024)
+EMBEDDING_DIM = 1536  # must match the embedding model output (openai text-embedding-3-small)
 
 
 class EvidenceDoc(models.Model):
