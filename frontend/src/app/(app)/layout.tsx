@@ -3,16 +3,23 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import {
+  ClipboardList,
+  Database,
+  LayoutDashboard,
+  LogOut,
+  TriangleAlert,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/requirements", label: "Requirements" },
-  { href: "/issues", label: "Issues" },
-  { href: "/facts", label: "Fact Base" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/requirements", label: "Requirements", icon: ClipboardList },
+  { href: "/issues", label: "Issues", icon: TriangleAlert },
+  { href: "/facts", label: "Fact Base", icon: Database },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -33,52 +40,81 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-full flex-col">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="grid size-6 place-items-center bg-brand text-sm font-bold text-white">
-              D
+    <div className="flex min-h-full">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
+        <div className="flex h-14 items-center gap-2 border-b border-border px-4">
+          <span className="grid size-6 place-items-center bg-brand text-sm font-bold text-white">
+            D
+          </span>
+          <span className="text-sm font-semibold tracking-tight">Ditto</span>
+        </div>
+
+        <nav className="flex-1 space-y-0.5 p-2">
+          {NAV.map((item) => {
+            const active = pathname.startsWith(item.href);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-2.5 border-l-2 px-3 py-2 text-sm transition-colors",
+                  active
+                    ? "border-brand bg-accent font-medium text-foreground"
+                    : "border-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                )}
+              >
+                <Icon className="size-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="border-t border-border p-2">
+          <Link
+            href="/account"
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+              pathname.startsWith("/account")
+                ? "font-medium text-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <span className="grid size-6 shrink-0 place-items-center border border-border bg-secondary text-xs font-medium">
+              {user.email[0]?.toUpperCase()}
             </span>
-            <span className="text-sm font-semibold tracking-tight">Ditto</span>
+            <span className="min-w-0 truncate">{user.email}</span>
           </Link>
-
-          <nav className="hidden items-center gap-1 md:flex">
-            {NAV.map((item) => {
-              const active = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "px-3 py-1.5 text-sm transition-colors",
-                    active
-                      ? "font-medium text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="ml-auto flex items-center gap-1">
+          <div className="mt-1 flex items-center gap-1">
             <ThemeToggle />
-            <Link
-              href="/account"
-              className="hidden px-2 text-sm text-muted-foreground hover:text-foreground sm:inline"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 justify-start gap-2 text-muted-foreground"
+              onClick={logout}
             >
-              {user.email}
-            </Link>
-            <Button variant="outline" size="sm" onClick={logout}>
+              <LogOut className="size-4" />
               Sign out
             </Button>
           </div>
         </div>
-      </header>
+      </aside>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-14 items-center gap-2 border-b border-border px-4 md:hidden">
+          <span className="grid size-6 place-items-center bg-brand text-sm font-bold text-white">
+            D
+          </span>
+          <span className="text-sm font-semibold tracking-tight">Ditto</span>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
+        </header>
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
