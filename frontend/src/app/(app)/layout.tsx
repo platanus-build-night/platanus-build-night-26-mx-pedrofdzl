@@ -25,7 +25,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -111,7 +110,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="min-w-52">
-                <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
+                <div className="truncate px-1.5 py-1 text-xs text-muted-foreground">
+                  {user.email}
+                </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/account")}>
                   <UserCog className="size-4" />
