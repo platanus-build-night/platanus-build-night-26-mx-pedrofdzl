@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
+  ChevronsUpDown,
   ClipboardList,
   Database,
   LayoutDashboard,
@@ -16,8 +16,10 @@ import {
   UserCog,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { AnalysisProvider } from "@/lib/analysis-ui";
 import { CopilotProvider } from "@/lib/copilot-ui";
 import { cn } from "@/lib/utils";
+import { AnalysisProgress } from "@/components/analysis-progress";
 import { CopilotPanel } from "@/components/copilot-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { TopBar } from "@/components/top-bar";
@@ -36,28 +38,20 @@ const NAV = [
   { href: "/issues", label: "Issues", icon: TriangleAlert },
 ];
 
+const MOCK_USER = { id: 0, email: "dev@ditto.local", two_factor_enabled: false };
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, logout } = useAuth();
+  const { logout } = useAuth();
+  const user = MOCK_USER;
   const router = useRouter();
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
-  useEffect(() => {
-    if (!loading && !user) router.replace("/login");
-  }, [loading, user, router]);
-
-  if (loading || !user) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-        Authenticating...
-      </div>
-    );
-  }
-
   return (
-    <CopilotProvider>
-      <div className="flex min-h-full">
+    <AnalysisProvider>
+      <CopilotProvider>
+        <div className="flex min-h-full">
         <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
           <div className="flex h-12 items-center gap-2.5 border-b border-border px-4">
             <Image src="/ditto.png" alt="Ditto" width={24} height={24} className="size-6 rounded-md" />
@@ -96,16 +90,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="p-2">
             <DropdownMenu>
               <DropdownMenuTrigger className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent">
-                <span className="grid size-7 shrink-0 place-items-center rounded-md border border-border bg-background text-xs">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full border border-border bg-background text-xs font-medium text-foreground">
                   {user.email[0]?.toUpperCase()}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-left text-foreground">
-                  {user.email}
-                </span>
+                <div className="min-w-0 flex-1 text-left">
+                  <p className="truncate text-sm font-medium text-foreground leading-none">
+                    {user.email.split("@")[0]}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground mt-0.5">
+                    {user.email}
+                  </p>
+                </div>
+                <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="min-w-52">
-                <div className="truncate px-1.5 py-1 text-xs text-muted-foreground">
-                  {user.email}
+                <div className="flex items-center gap-2.5 px-1.5 py-1.5">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full border border-border bg-background text-xs font-medium text-foreground">
+                    {user.email[0]?.toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground leading-none">
+                      {user.email.split("@")[0]}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground mt-0.5">
+                      {user.email}
+                    </p>
+                  </div>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/account")}>
@@ -139,7 +149,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <CopilotPanel />
+        <AnalysisProgress />
       </div>
-    </CopilotProvider>
+      </CopilotProvider>
+    </AnalysisProvider>
   );
 }

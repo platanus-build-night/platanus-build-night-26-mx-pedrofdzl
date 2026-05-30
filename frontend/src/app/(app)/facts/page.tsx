@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Window } from "@/components/window";
+import { useAnalysis } from "@/lib/analysis-ui";
 import {
   analyzeDocument,
   createTextDocument,
@@ -55,12 +56,10 @@ export default function FactBasePage() {
     onError: (error) => toast.error((error as Error).message),
   });
 
+  const { track } = useAnalysis();
   const ingest = useMutation({
     mutationFn: (docId: number) => analyzeDocument(docId),
-    onSuccess: (job) => {
-      toast.success(`Extracted ${job.facts_created} facts.`);
-      queryClient.invalidateQueries({ queryKey: ["facts"] });
-    },
+    onSuccess: (job) => track(job.id),
     onError: (error) => toast.error((error as Error).message),
   });
 
@@ -100,7 +99,7 @@ export default function FactBasePage() {
             >
               <span className="truncate">{doc.name}</span>
               <Button
-                variant="ghost"
+                variant="tertiary"
                 size="sm"
                 onClick={() => ingest.mutate(doc.id)}
                 disabled={ingest.isPending && ingest.variables === doc.id}
