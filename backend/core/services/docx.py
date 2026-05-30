@@ -1,5 +1,7 @@
 import mammoth
+from markdownify import markdownify
 
 
 def parse_docx(file):
-    return mammoth.convert_to_markdown(file).value
+    html = mammoth.convert_to_html(file).value
+    return markdownify(html, heading_style="ATX", bullets="-")
