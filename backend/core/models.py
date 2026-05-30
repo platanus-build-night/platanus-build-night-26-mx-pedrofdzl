@@ -4,10 +4,45 @@ from pgvector.django import HnswIndex, VectorField
 EMBEDDING_DIM = 1536  # must match the embedding model output (openai text-embedding-3-small)
 
 
-class EvidenceDoc(models.Model):
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+    parent = models.ForeignKey(
+        "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["parent", "name"], name="unique_category_per_parent")
+        ]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def path(self):
+        names = [self.name]
+        node = self.parent
+        while node is not None:
+            names.append(node.name)
+            node = node.parent
+        return " / ".join(reversed(names))
+
+
+class Document(models.Model):
+    class DocType(models.TextChoices):
+        TEXT = "text"
+        DOCX = "docx"
+
     name = models.CharField(max_length=255)
     content = models.TextField(blank=True)
-    source_file = models.FileField(upload_to="evidence/", null=True, blank=True)
+    source_file = models.FileField(upload_to="documents/", null=True, blank=True)
+    doc_type = models.CharField(max_length=10, choices=DocType.choices, default=DocType.TEXT)
+    category = models.ForeignKey(
+        Category, null=True, blank=True, related_name="documents", on_delete=models.SET_NULL
+    )
     style_guide_section = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -16,23 +51,24 @@ class EvidenceDoc(models.Model):
         return self.name
 
 
-class EvidenceChunk(models.Model):
-    evidence_doc = models.ForeignKey(EvidenceDoc, related_name="chunks", on_delete=models.CASCADE)
+class DocumentChunk(models.Model):
+    document = models.ForeignKey(Document, related_name="chunks", on_delete=models.CASCADE)
     text = models.TextField()
     anchor = models.CharField(max_length=255, blank=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ["evidence_doc", "order"]
+        ordering = ["document", "order"]
 
     def __str__(self):
-        return f"{self.evidence_doc_id}:{self.order}"
+        return f"{self.document_id}:{self.order}"
 
 
 class Fact(models.Model):
     class Status(models.TextChoices):
         CANDIDATE = "candidate"
         APPROVED = "approved"
+        REJECTED = "rejected"
         STALE = "stale"
 
     statement = models.TextField()
@@ -61,15 +97,15 @@ class Fact(models.Model):
 
 class FactCitation(models.Model):
     fact = models.ForeignKey(Fact, related_name="citations", on_delete=models.CASCADE)
-    evidence_chunk = models.ForeignKey(
-        EvidenceChunk,
+    chunk = models.ForeignKey(
+        DocumentChunk,
         related_name="citations",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
     )
-    evidence_doc = models.ForeignKey(
-        EvidenceDoc,
+    document = models.ForeignKey(
+        Document,
         related_name="citations",
         null=True,
         blank=True,
@@ -78,6 +114,33 @@ class FactCitation(models.Model):
 
     def __str__(self):
         return f"citation:{self.fact_id}"
+
+
+class AnalysisJob(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending"
+        RUNNING = "running"
+        DONE = "done"
+        FAILED = "failed"
+
+    document = models.ForeignKey(Document, related_name="analysis_jobs", on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    step = models.CharField(max_length=40, blank=True)
+    processed = models.PositiveIntegerField(default=0)
+    total = models.PositiveIntegerField(default=0)
+    facts_created = models.PositiveIntegerField(default=0)
+    error = models.TextField(blank=True)
+    task_id = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"job:{self.document_id}:{self.status}"
 
 
 class Questionnaire(models.Model):
