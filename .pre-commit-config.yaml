@@ -12,10 +12,12 @@ repos:
         entry: uv run --project backend ruff check --fix
         language: system
         files: ^backend/.*\.py$
+        exclude: /migrations/
         pass_filenames: true
       - id: ruff-format
         name: ruff format (backend)
         entry: uv run --project backend ruff format
         language: system
         files: ^backend/.*\.py$
+        exclude: /migrations/
         pass_filenames: true
