@@ -167,3 +167,6 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "v1",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+EMBEDDING_MODEL = env("EMBEDDING_MODEL", default="text-embedding-3-small")
