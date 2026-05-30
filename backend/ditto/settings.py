@@ -22,6 +22,10 @@ env = environ.Env(
     DEBUG=(bool, True),
     ALLOWED_HOSTS=(list, ["*"]),
     DATABASE_URL=(str, "postgres://ditto:ditto@localhost:5432/ditto"),
+    CORS_ALLOWED_ORIGINS=(
+        list,
+        ["http://localhost:3000", "http://127.0.0.1:3000"],
+    ),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -38,6 +42,8 @@ DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
+CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
+
 
 # Application definition
 
@@ -49,6 +55,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third-party
+    "corsheaders",
     "rest_framework",
     "django_filters",
     "drf_spectacular",
@@ -63,6 +70,7 @@ AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
