@@ -1,6 +1,5 @@
 import django_filters
 from django.http import StreamingHttpResponse
-from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -30,26 +29,19 @@ from core.serializers import (
 )
 from core.services.auditor import audit_answer
 from core.services.copilot import stream_chat
-from core.services.ingest import run_pipeline
 from core.services.questionnaire_ingest import ingest_questionnaire
 from core.services.responder import answer_requirement
+from core.tasks import analyze_document
 
 SUMMARY = OpenApiResponse(description="Operation summary")
 
 
-def run_analysis(job):
-    job.status = AnalysisJob.Status.RUNNING
-    job.started_at = timezone.now()
-    job.save(update_fields=["status", "started_at", "updated_at"])
-    try:
-        result = run_pipeline(job.document, job=job, reset=True)
-        job.status = AnalysisJob.Status.DONE
-        job.facts_created = result["facts"]
-    except Exception as exc:  # noqa: BLE001
-        job.status = AnalysisJob.Status.FAILED
-        job.error = str(exc)
-    job.finished_at = timezone.now()
-    job.save()
+def _enqueue_analysis(document):
+    job = AnalysisJob.objects.create(document=document)
+    result = analyze_document.delay(job.id)
+    job.task_id = result.id
+    job.save(update_fields=["task_id"])
+    return job
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -67,8 +59,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     @extend_schema(request=None, responses=AnalysisJobSerializer)
     @action(detail=True, methods=["post"])
     def analyze(self, request, pk=None):
-        job = AnalysisJob.objects.create(document=self.get_object())
-        run_analysis(job)
+        job = _enqueue_analysis(self.get_object())
         return Response(AnalysisJobSerializer(job).data, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(request=None, responses=AnalysisJobSerializer)
@@ -78,8 +69,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
         if "content" in request.data:
             document.content = request.data["content"]
             document.save(update_fields=["content", "updated_at"])
-        job = AnalysisJob.objects.create(document=document)
-        run_analysis(job)
+        job = _enqueue_analysis(document)
         return Response(AnalysisJobSerializer(job).data, status=status.HTTP_202_ACCEPTED)
 
 
