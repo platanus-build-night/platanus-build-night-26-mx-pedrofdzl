@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { Window } from "@/components/window";
@@ -16,37 +17,44 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
-  const [needsOtp, setNeedsOtp] = useState(false);
+  const [step, setStep] = useState<"credentials" | "otp">("credentials");
   const [busy, setBusy] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function attempt(code: string) {
     setBusy(true);
     try {
-      await login(email, password, otp);
+      await login(email, password, code);
       router.replace("/dashboard");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Login failed";
-      if (/2fa|otp/i.test(msg)) setNeedsOtp(true);
-      toast.error(msg);
+      if (/2fa|otp/i.test(msg)) {
+        setStep("otp");
+        if (code) toast.error(msg);
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center p-6">
-      <Window title="Sign in" className="w-full max-w-sm">
-        <form onSubmit={onSubmit} className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Sign in to your workspace.
-          </p>
+    <Window title="Sign in" className="w-full max-w-sm">
+      {step === "credentials" ? (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            attempt("");
+          }}
+          className="space-y-3"
+        >
+          <p className="text-sm text-muted-foreground">Sign in to your workspace.</p>
           <Field label="Email">
             <Input
               type="email"
               autoComplete="username"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
               required
             />
           </Field>
@@ -55,20 +63,10 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               required
             />
           </Field>
-          {needsOtp ? (
-            <Field label="2FA Code">
-              <Input
-                inputMode="numeric"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="000000"
-              />
-            </Field>
-          ) : null}
           <div className="flex items-center justify-between pt-1">
             <Link
               href="/register"
@@ -77,27 +75,58 @@ export default function LoginPage() {
               Create account
             </Link>
             <Button type="submit" disabled={busy}>
-              {busy ? "Signing in..." : "Sign in"}
+              {busy ? "Signing in..." : "Continue"}
             </Button>
           </div>
         </form>
-      </Window>
-    </div>
+      ) : (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            attempt(otp);
+          }}
+          className="space-y-3"
+        >
+          <p className="text-sm text-muted-foreground">
+            Enter the 6-digit code from your authenticator app for{" "}
+            <span className="text-foreground">{email}</span>.
+          </p>
+          <Field label="Authentication Code">
+            <Input
+              inputMode="numeric"
+              autoFocus
+              value={otp}
+              onChange={(event) => setOtp(event.target.value)}
+              placeholder="000000"
+              required
+            />
+          </Field>
+          <div className="flex items-center justify-between pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setStep("credentials");
+                setOtp("");
+              }}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="size-3.5" />
+              Back
+            </button>
+            <Button type="submit" disabled={busy}>
+              {busy ? "Verifying..." : "Verify"}
+            </Button>
+          </div>
+        </form>
+      )}
+    </Window>
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <Label className="text-sm font-medium">
-        {label}
-      </Label>
+      <Label className="text-sm font-medium">{label}</Label>
       {children}
     </div>
   );
