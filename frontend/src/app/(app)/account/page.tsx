@@ -75,7 +75,7 @@ export default function AccountPage() {
         {user.two_factor_enabled ? (
           <p className="text-sm text-muted-foreground">
             TOTP is active on this account. A 6-digit code from your
-            authenticator app is required at logon.
+            authenticator app is required at login.
           </p>
         ) : setup ? (
           <form onSubmit={verify} className="space-y-3">
@@ -119,7 +119,7 @@ export default function AccountPage() {
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Add a time-based one-time password (TOTP) as a second factor at
-              logon.
+              login.
             </p>
             <Button onClick={begin} disabled={busy}>
               {busy ? "Starting..." : "Enable 2FA"}
