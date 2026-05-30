@@ -1,0 +1,7 @@
+# Local agent + planning artifacts — not committed
+.claude/
+CLAUDE.md
+PLAN.md
+
+# Tooling caches
+.ruff_cache/
