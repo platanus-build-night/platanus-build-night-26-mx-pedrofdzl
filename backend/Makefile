@@ -1,4 +1,4 @@
-.PHONY: lint format fix check run worker migrate makemigrations shell test
+.PHONY: lint format fix check run worker dev migrate makemigrations shell test
 
 lint:  ## Lint with ruff
 	uv run ruff check .
@@ -18,6 +18,12 @@ run:  ## Run dev server
 
 worker:  ## Run celery worker
 	uv run celery -A ditto worker -l info
+
+dev:  ## Run web server + celery worker together (Ctrl-C stops both)
+	@trap 'kill 0' EXIT; \
+	uv run python manage.py runserver & \
+	uv run celery -A ditto worker -l info & \
+	wait
 
 migrate:  ## Apply migrations
 	uv run python manage.py migrate
