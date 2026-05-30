@@ -1,7 +1,9 @@
 import io
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.test import TestCase
+from django.utils import timezone
 from pgvector.django import CosineDistance
 
 from core.models import (
@@ -17,9 +19,11 @@ from core.models import (
     Requirement,
 )
 from core.services.auditor import audit_answer
+from core.services.freshness import sweep_stale_facts
 from core.services.ingest import run_pipeline
 from core.services.questionnaire_ingest import ingest_questionnaire
 from core.services.responder import answer_requirement
+from core.services.reuse import find_reusable_answer
 
 
 def unit_vector(index):
@@ -107,7 +111,7 @@ class AuditorTests(TestCase):
         issues = audit_answer(self._answer("Yes, we do."))
 
         self.assertEqual(len(issues), 1)
-        self.assertEqual(issues[0].type, Issue.Type.UNBACKED)
+        self.assertEqual(issues[0].type, Issue.Type.UNBACKED_CLAIM)
 
     @patch("core.services.auditor.review_answer")
     def test_contradiction_finding_creates_issue(self, mock_review):
@@ -122,3 +126,79 @@ class AuditorTests(TestCase):
 
         self.assertEqual(len(issues), 1)
         self.assertEqual(issues[0].type, Issue.Type.CONTRADICTION)
+
+    def test_audit_marks_answer_audited(self):
+        answer = self._answer("Yes, we do.")
+        self.assertIsNone(answer.audited_at)
+
+        audit_answer(answer)
+        answer.refresh_from_db()
+
+        self.assertIsNotNone(answer.audited_at)
+
+
+class ReuseTests(TestCase):
+    def _answered_requirement(self, bank, text, fact_statement):
+        questionnaire = Questionnaire.objects.create(source_name=bank)
+        requirement = Requirement.objects.create(
+            questionnaire=questionnaire,
+            text=text,
+            normalized_key=" ".join(text.lower().split()),
+            embedding=unit_vector(0),
+        )
+        answer = Answer.objects.create(requirement=requirement, text="Yes, fully.")
+        fact = Fact.objects.create(statement=fact_statement, embedding=unit_vector(0))
+        AnswerCitation.objects.create(answer=answer, fact=fact)
+        return requirement, answer
+
+    def test_find_reusable_answer_matches_on_normalized_key(self):
+        _, source = self._answered_requirement("Bank A", "Do you encrypt data?", "AES-256 at rest")
+        twin_q = Questionnaire.objects.create(source_name="Bank B")
+        twin = Requirement.objects.create(
+            questionnaire=twin_q,
+            text="Do you encrypt data?",
+            normalized_key="do you encrypt data?",
+            embedding=unit_vector(0),
+        )
+
+        self.assertEqual(find_reusable_answer(twin), source)
+
+    def test_answer_requirement_reuses_and_copies_citations(self):
+        _, source = self._answered_requirement("Bank A", "Do you encrypt data?", "AES-256 at rest")
+        twin_q = Questionnaire.objects.create(source_name="Bank B")
+        twin = Requirement.objects.create(
+            questionnaire=twin_q,
+            text="Do you encrypt data?",
+            normalized_key="do you encrypt data?",
+            embedding=unit_vector(0),
+        )
+
+        answer = answer_requirement(twin)
+
+        self.assertEqual(answer.source, Answer.Source.REUSED)
+        self.assertEqual(answer.reused_from, source)
+        self.assertEqual(answer.text, source.text)
+        self.assertEqual(answer.citations.count(), source.citations.count())
+
+
+class FreshnessTests(TestCase):
+    def test_sweep_marks_stale_and_opens_one_issue(self):
+        past = timezone.localdate() - timedelta(days=1)
+        fact = Fact.objects.create(
+            statement="Pen test from last year",
+            status=Fact.Status.APPROVED,
+            review_by=past,
+        )
+
+        result = sweep_stale_facts()
+        fact.refresh_from_db()
+
+        self.assertEqual(fact.status, Fact.Status.STALE)
+        self.assertEqual(result["stale"], 1)
+        issues = Issue.objects.filter(fact=fact, type=Issue.Type.STALE_FACT)
+        self.assertEqual(issues.count(), 1)
+        self.assertEqual(issues.first().due_date, past)
+
+        # Idempotent: re-running opens no new issue.
+        sweep_stale_facts()
+        self.assertEqual(Issue.objects.filter(fact=fact, type=Issue.Type.STALE_FACT).count(), 1)

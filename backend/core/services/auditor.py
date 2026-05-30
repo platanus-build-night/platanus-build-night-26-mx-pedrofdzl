@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils import timezone
 
 from core.models import Issue
 from core.services.llm import anthropic_client
@@ -50,26 +51,48 @@ def review_answer(answer_text, facts):
     return []
 
 
+FINDING_TYPE_MAP = {
+    "unbacked": Issue.Type.UNBACKED_CLAIM,
+    "contradiction": Issue.Type.CONTRADICTION,
+}
+
+TYPE_TITLES = {
+    Issue.Type.UNBACKED_CLAIM: "Unbacked claim",
+    Issue.Type.CONTRADICTION: "Contradiction with facts",
+}
+
+
+def _due_date_for(requirement):
+    questionnaire = getattr(requirement, "questionnaire", None)
+    return getattr(questionnaire, "due_date", None)
+
+
 def audit_answer(answer):
+    requirement = answer.requirement
+    due_date = _due_date_for(requirement)
     facts = [citation.fact for citation in answer.citations.select_related("fact")]
+    answer.audited_at = timezone.now()
+    answer.save(update_fields=["audited_at", "updated_at"])
     if not facts:
         return [
             Issue.objects.create(
-                type=Issue.Type.UNBACKED,
-                requirement=answer.requirement,
+                type=Issue.Type.UNBACKED_CLAIM,
+                requirement=requirement,
+                title="Answer cites no supporting facts",
                 description="Answer cites no supporting facts.",
+                due_date=due_date,
             )
         ]
     issues = []
     for finding in review_answer(answer.text, facts):
-        issue_type = (
-            finding["type"] if finding["type"] in Issue.Type.values else Issue.Type.CONTRADICTION
-        )
+        issue_type = FINDING_TYPE_MAP.get(finding["type"], Issue.Type.CONTRADICTION)
         issues.append(
             Issue.objects.create(
                 type=issue_type,
-                requirement=answer.requirement,
+                requirement=requirement,
+                title=TYPE_TITLES.get(issue_type, ""),
                 description=finding["description"],
+                due_date=due_date,
             )
         )
     return issues

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from pgvector.django import HnswIndex, VectorField
 
@@ -153,6 +154,7 @@ class Questionnaire(models.Model):
     raw_file = models.FileField(upload_to="questionnaires/", null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+    layout = models.JSONField(default=dict, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -166,6 +168,19 @@ class Requirement(models.Model):
     text = models.TextField()
     category = models.CharField(max_length=120, blank=True)
     normalized_key = models.CharField(max_length=255, blank=True, db_index=True)
+    source_row = models.IntegerField(null=True, blank=True)
+    embedding = VectorField(dimensions=EMBEDDING_DIM, null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            HnswIndex(
+                name="requirement_embedding_hnsw",
+                fields=["embedding"],
+                m=16,
+                ef_construction=64,
+                opclasses=["vector_cosine_ops"],
+            )
+        ]
 
     def __str__(self):
         return self.text[:80]
@@ -176,10 +191,19 @@ class Answer(models.Model):
         DRAFT = "draft"
         APPROVED = "approved"
 
+    class Source(models.TextChoices):
+        GENERATED = "generated"
+        REUSED = "reused"
+
     requirement = models.ForeignKey(Requirement, related_name="answers", on_delete=models.CASCADE)
     text = models.TextField()
     confidence = models.FloatField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    source = models.CharField(max_length=20, choices=Source.choices, default=Source.GENERATED)
+    reused_from = models.ForeignKey(
+        "self", null=True, blank=True, related_name="reused_into", on_delete=models.SET_NULL
+    )
+    audited_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -197,26 +221,48 @@ class AnswerCitation(models.Model):
 
 class Issue(models.Model):
     class Type(models.TextChoices):
-        UNBACKED = "unbacked"
+        MISSING_POLICY = "missing_policy"
+        MISSING_EVIDENCE = "missing_evidence"
+        IMPLEMENTATION_GAP = "implementation_gap"
         CONTRADICTION = "contradiction"
-        GAP = "gap"
-        DRIFT = "drift"
-        STALE = "stale"
+        UNBACKED_CLAIM = "unbacked_claim"
+        STALE_FACT = "stale_fact"
+        COMMITMENT = "commitment"
+
+    class Severity(models.TextChoices):
+        LOW = "low"
+        MEDIUM = "medium"
+        HIGH = "high"
 
     class Status(models.TextChoices):
         OPEN = "open"
+        IN_PROGRESS = "in_progress"
         CLOSED = "closed"
 
-    type = models.CharField(max_length=20, choices=Type.choices)
+    type = models.CharField(max_length=32, choices=Type.choices)
+    severity = models.CharField(max_length=10, choices=Severity.choices, default=Severity.MEDIUM)
     requirement = models.ForeignKey(
         Requirement, related_name="issues", null=True, blank=True, on_delete=models.SET_NULL
     )
     fact = models.ForeignKey(
         Fact, related_name="issues", null=True, blank=True, on_delete=models.SET_NULL
     )
+    assignee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="issues",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    title = models.CharField(max_length=200, blank=True)
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+    due_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.type}:{self.pk}"

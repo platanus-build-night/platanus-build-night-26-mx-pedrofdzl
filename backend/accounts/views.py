@@ -2,6 +2,7 @@ import base64
 from io import BytesIO
 
 import qrcode
+from django.contrib.auth import get_user_model
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
@@ -16,7 +17,10 @@ from .serializers import (
     OTPSerializer,
     RegisterSerializer,
     TwoFactorSetupSerializer,
+    UserListSerializer,
 )
+
+User = get_user_model()
 
 
 def _qr_data_uri(text):
@@ -58,6 +62,12 @@ class TwoFactorVerifyView(APIView):
         device.confirmed = True
         device.save()
         return Response({"detail": "2FA enabled."})
+
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.filter(is_active=True).order_by("email")
+    serializer_class = UserListSerializer
+    pagination_class = None
 
 
 @extend_schema(responses=MeSerializer)

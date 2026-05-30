@@ -4,6 +4,7 @@ from pgvector.django import CosineDistance
 from core.models import Answer, AnswerCitation, Fact
 from core.services.embeddings import embed_text
 from core.services.llm import anthropic_client
+from core.services.reuse import find_reusable_answer, reuse_answer
 
 PROMPT = (
     "You are answering a vendor security questionnaire. Use ONLY the facts provided, each "
@@ -55,7 +56,19 @@ def generate_answer(requirement_text, facts):
     return {"answer": "", "cited_fact_ids": [], "confidence": 0.0}
 
 
-def answer_requirement(requirement, k=8):
+def _ensure_embedding(requirement):
+    if requirement.embedding is None:
+        requirement.embedding = embed_text(requirement.text)
+        requirement.save(update_fields=["embedding"])
+
+
+def answer_requirement(requirement, k=8, reuse=True):
+    _ensure_embedding(requirement)
+    if reuse:
+        source = find_reusable_answer(requirement)
+        if source is not None:
+            return reuse_answer(requirement, source)
+
     facts = retrieve_facts(requirement.text, k)
     result = generate_answer(requirement.text, facts)
     answer = Answer.objects.create(
