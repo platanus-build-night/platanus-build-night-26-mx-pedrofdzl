@@ -8,6 +8,7 @@ import {
   Database,
   LayoutDashboard,
   LogOut,
+  MessageSquare,
   TriangleAlert,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/copilot", label: "Copilot", icon: MessageSquare },
   { href: "/requirements", label: "Requirements", icon: ClipboardList },
   { href: "/issues", label: "Issues", icon: TriangleAlert },
   { href: "/facts", label: "Fact Base", icon: Database },
