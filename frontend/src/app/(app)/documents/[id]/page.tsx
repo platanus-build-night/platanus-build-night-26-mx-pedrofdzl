@@ -94,7 +94,7 @@ export default function DocumentDetailPage() {
             <DocEditor key={doc.data.id} content={draft ?? content} onChange={setDraft} />
           ) : content ? (
             <div
-              className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-table:text-[13px]"
+              className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto prose-headings:font-semibold prose-table:text-[13px]"
               dangerouslySetInnerHTML={{ __html: html }}
             />
           ) : (
