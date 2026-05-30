@@ -1,4 +1,4 @@
-.PHONY: lint format fix check run migrate makemigrations shell test
+.PHONY: lint format fix check run worker migrate makemigrations shell test
 
 lint:  ## Lint with ruff
 	uv run ruff check .
@@ -15,6 +15,9 @@ check:  ## Django system check
 
 run:  ## Run dev server
 	uv run python manage.py runserver
+
+worker:  ## Run celery worker
+	uv run celery -A ditto worker -l info
 
 migrate:  ## Apply migrations
 	uv run python manage.py migrate
