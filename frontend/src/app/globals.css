@@ -37,82 +37,82 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-brand: var(--brand);
   --color-sidebar: var(--sidebar);
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
+  --radius-4xl: calc(var(--radius) + 24px);
 }
 
 /*
-  Modern, clean tech-startup theme. Neutral base + indigo accent.
-  Sharp corners everywhere. Light and dark via next-themes (class).
+  Clean, modern tech-startup theme (ElevenLabs vein). Neutral grays,
+  violet accent from the logo, rounded corners. Light + dark via next-themes.
 */
 :root {
   --background: #ffffff;
-  --foreground: #1c1c1a;
-  --sidebar: #f4f3f1;
+  --foreground: #18181b;
+  --sidebar: #fafafa;
   --card: #ffffff;
-  --card-foreground: #1c1c1a;
+  --card-foreground: #18181b;
   --popover: #ffffff;
-  --popover-foreground: #1c1c1a;
-  --primary: #2a2a28;
-  --primary-foreground: #fafaf9;
-  --secondary: #f0efed;
-  --secondary-foreground: #2a2a28;
-  --muted: #f0efed;
-  --muted-foreground: #76746e;
-  --accent: #f0efed;
-  --accent-foreground: #2a2a28;
-  --destructive: #b4524a;
-  --success: #5d8a66;
+  --popover-foreground: #18181b;
+  --primary: #27272a;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #27272a;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #27272a;
+  --destructive: #dc2626;
+  --success: #16a34a;
   --success-foreground: #ffffff;
-  --warning: #ad8240;
+  --warning: #d97706;
   --warning-foreground: #ffffff;
-  --brand: #6b7299;
-  --border: #e6e4e0;
-  --input: #e6e4e0;
-  --ring: #6b7299;
-  --chart-1: #6b7299;
-  --chart-2: #5f8a8c;
-  --chart-3: #8a9a6b;
-  --chart-4: #c0915b;
-  --chart-5: #a3788c;
-  --radius: 0px;
+  --brand: #7c5cff;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #7c5cff;
+  --chart-1: #7c5cff;
+  --chart-2: #2dd4bf;
+  --chart-3: #f59e0b;
+  --chart-4: #ec4899;
+  --chart-5: #38bdf8;
+  --radius: 0.625rem;
 }
 
 .dark {
-  --background: #141415;
-  --foreground: #ededeb;
-  --sidebar: #1a1a1c;
-  --card: #1c1c1e;
-  --card-foreground: #ededeb;
-  --popover: #1f1f21;
-  --popover-foreground: #ededeb;
-  --primary: #ededeb;
-  --primary-foreground: #1c1c1c;
-  --secondary: #262628;
-  --secondary-foreground: #ededeb;
-  --muted: #262628;
-  --muted-foreground: #9a9a96;
-  --accent: #2a2a2c;
-  --accent-foreground: #ededeb;
-  --destructive: #cf6f66;
-  --success: #7aa882;
-  --success-foreground: #0c1f10;
-  --warning: #c79a55;
-  --warning-foreground: #21180a;
-  --brand: #8b93bd;
-  --border: #2c2c2e;
-  --input: #303032;
-  --ring: #8b93bd;
-  --chart-1: #8b93bd;
-  --chart-2: #79a8aa;
-  --chart-3: #a6b585;
-  --chart-4: #d4aa78;
-  --chart-5: #bf94a8;
+  --background: #0c0c0d;
+  --foreground: #fafafa;
+  --sidebar: #161617;
+  --card: #161617;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --destructive: #f87171;
+  --success: #4ade80;
+  --success-foreground: #052e16;
+  --warning: #fbbf24;
+  --warning-foreground: #1c1207;
+  --brand: #a78bfa;
+  --border: #27272a;
+  --input: #2a2a2e;
+  --ring: #a78bfa;
+  --chart-1: #a78bfa;
+  --chart-2: #2dd4bf;
+  --chart-3: #f59e0b;
+  --chart-4: #f472b6;
+  --chart-5: #38bdf8;
 }
 
 @layer base {
@@ -143,11 +143,4 @@
     font-family: var(--font-heading);
     letter-spacing: -0.01em;
   }
-}
-
-/* Single uniform 400 weight across the UI (unlayered: overrides utilities). */
-.font-medium,
-.font-semibold,
-.font-bold {
-  font-weight: 400;
 }
