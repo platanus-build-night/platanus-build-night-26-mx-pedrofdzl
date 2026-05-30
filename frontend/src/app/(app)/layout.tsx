@@ -38,7 +38,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <span className="font-mono font-semibold tracking-widest uppercase">
           Ditto // Compliance Workstation
         </span>
-        <span className="font-mono">{user.email}</span>
+        <Link href="/account" className="font-mono hover:underline">
+          {user.email}
+        </Link>
       </div>
 
       <div className="flex items-center gap-3 border-b border-border bg-secondary px-2 py-0.5 text-xs">
