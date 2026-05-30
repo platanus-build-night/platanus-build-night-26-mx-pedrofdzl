@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from core.models import EMBEDDING_DIM, Fact, Questionnaire, Requirement
+from core.services.copilot import run_tool
 
 User = get_user_model()
 
@@ -82,3 +83,18 @@ class QuestionnaireUploadTests(APITestCase):
 
         self.assertEqual(ingested.status_code, status.HTTP_200_OK)
         self.assertEqual(ingested.data["requirements"], 2)
+
+
+class CopilotTests(APITestCase):
+    @patch("core.services.copilot.retrieve_facts")
+    def test_search_facts_tool_returns_facts(self, mock_retrieve):
+        fact = Fact.objects.create(statement="Data encrypted at rest")
+        mock_retrieve.return_value = [fact]
+
+        result = run_tool("search_facts", {"query": "encryption"})
+
+        self.assertEqual(result["facts"][0]["statement"], "Data encrypted at rest")
+
+    def test_copilot_requires_auth(self):
+        res = self.client.post("/api/v1/copilot/chat/", {"messages": []}, format="json")
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
