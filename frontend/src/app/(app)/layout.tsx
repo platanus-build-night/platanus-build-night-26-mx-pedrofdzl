@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -46,9 +47,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-full">
       <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
         <div className="flex h-12 items-center gap-2.5 px-4">
-          <span className="grid size-6 place-items-center bg-brand text-xs text-white">
-            D
-          </span>
+          <Image src="/ditto.png" alt="Ditto" width={24} height={24} className="size-6" />
           <div className="flex flex-col leading-none">
             <span className="text-sm tracking-tight">Ditto</span>
             <span className="text-[11px] text-muted-foreground">Compliance</span>
@@ -121,9 +120,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-12 items-center gap-2 border-b border-border px-4 md:hidden">
-          <span className="grid size-5 place-items-center bg-brand text-xs text-white">
-            D
-          </span>
+          <Image src="/ditto.png" alt="Ditto" width={20} height={20} className="size-5" />
           <span className="text-sm tracking-tight">Ditto</span>
           <div className="ml-auto">
             <ThemeToggle />
