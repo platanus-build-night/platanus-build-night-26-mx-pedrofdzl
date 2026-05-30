@@ -31,9 +31,9 @@ import {
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/requirements", label: "Requirements", icon: ClipboardList },
-  { href: "/issues", label: "Issues", icon: TriangleAlert },
+  { href: "/questionnaires", label: "Questionnaires", icon: ClipboardList },
   { href: "/facts", label: "Fact Base", icon: Database },
+  { href: "/issues", label: "Issues", icon: TriangleAlert },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
