@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Send } from "lucide-react";
+import { Download, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -35,16 +35,31 @@ export default function QuestionnaireDetailPage() {
   const id = Number(params.id);
   const queryClient = useQueryClient();
   const [submitOpen, setSubmitOpen] = useState(false);
+  const [answering, setAnswering] = useState(false);
 
   const { data: questionnaire } = useQuery({
     queryKey: ["questionnaire", id],
     queryFn: () => getQuestionnaire(id),
+    refetchInterval: answering ? 2000 : false,
   });
   const { data: requirements, isLoading } = useQuery({
     queryKey: ["requirements", id],
     queryFn: () => listRequirements({ questionnaire: id }),
   });
-  const { data: answers } = useQuery({ queryKey: ["answers", id], queryFn: () => listAnswers() });
+  const { data: answers } = useQuery({
+    queryKey: ["answers", id],
+    queryFn: () => listAnswers(),
+    refetchInterval: answering ? 2000 : false,
+  });
+
+  useEffect(() => {
+    if (!answering || !questionnaire) return;
+    if (questionnaire.answered_count >= questionnaire.requirement_count) {
+      setAnswering(false);
+      queryClient.invalidateQueries({ queryKey: ["issues"] });
+      toast.success("All requirements answered.");
+    }
+  }, [answering, questionnaire, queryClient]);
 
   const answerByRequirement = new Map<number, Answer>();
   answers?.results.forEach((answer) => answerByRequirement.set(answer.requirement, answer));
@@ -56,9 +71,9 @@ export default function QuestionnaireDetailPage() {
 
   const answerAll = useMutation({
     mutationFn: () => answerQuestionnaire(id),
-    onSuccess: (summary) => {
-      toast.success(`Answered ${summary.answered} requirements.`);
-      invalidate();
+    onSuccess: () => {
+      setAnswering(true);
+      toast.info("Answering in background...");
     },
     onError: (error) => toast.error((error as Error).message),
   });
@@ -125,8 +140,15 @@ export default function QuestionnaireDetailPage() {
             <Download />
             {exportFilled.isPending ? "Exporting..." : "Export filled"}
           </Button>
-          <Button onClick={() => answerAll.mutate()} disabled={answerAll.isPending}>
-            {answerAll.isPending ? "Answering..." : "Answer all"}
+          <Button onClick={() => answerAll.mutate()} disabled={answerAll.isPending || answering}>
+            {answering ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Answering...
+              </>
+            ) : (
+              "Answer all"
+            )}
           </Button>
           {questionnaire && questionnaire.status !== "submitted" ? (
             <Button variant="secondary" onClick={() => setSubmitOpen(true)}>
@@ -154,6 +176,21 @@ export default function QuestionnaireDetailPage() {
             value={questionnaire.open_issue_count}
             tone={questionnaire.open_issue_count > 0 ? "danger" : "default"}
           />
+        </div>
+      ) : null}
+
+      {answering && questionnaire && questionnaire.requirement_count > 0 ? (
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Answering requirements...</span>
+            <span>{questionnaire.answered_count}/{questionnaire.requirement_count}</span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-brand transition-all duration-500"
+              style={{ width: `${Math.round(100 * questionnaire.answered_count / questionnaire.requirement_count)}%` }}
+            />
+          </div>
         </div>
       ) : null}
 

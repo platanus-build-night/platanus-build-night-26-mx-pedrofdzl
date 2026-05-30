@@ -205,7 +205,7 @@ export const ingestQuestionnaire = (id: number) =>
   api<{ requirements: number }>(`/questionnaires/${id}/ingest/`, { method: "POST" });
 
 export const answerQuestionnaire = (id: number) =>
-  api<{ answered: number }>(`/questionnaires/${id}/answer/`, { method: "POST" });
+  api<{ status: string }>(`/questionnaires/${id}/answer/`, { method: "POST" });
 
 export const exportQuestionnaire = (id: number) =>
   apiDownload(`/questionnaires/${id}/export/`);
