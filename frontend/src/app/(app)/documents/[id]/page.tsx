@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { DocEditor } from "@/components/doc-editor";
 import { FactReview } from "@/components/fact-review";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -82,11 +83,9 @@ export default function DocumentDetailPage() {
             </Button>
           }
         >
-          <textarea
-            value={value}
-            onChange={(event) => setContent(event.target.value)}
-            className="min-h-80 w-full resize-y rounded-md border border-input bg-transparent p-3 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-          />
+          {doc.data ? (
+            <DocEditor key={doc.data.id} content={doc.data.content} onChange={setContent} />
+          ) : null}
         </Window>
       )}
     </div>
