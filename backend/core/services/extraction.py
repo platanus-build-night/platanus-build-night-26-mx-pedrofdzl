@@ -1,7 +1,6 @@
-from functools import lru_cache
-
-from anthropic import Anthropic
 from django.conf import settings
+
+from core.services.llm import anthropic_client
 
 PROMPT = (
     "Extract atomic, verifiable security and compliance facts from the vendor documentation "
@@ -33,13 +32,8 @@ FACT_TOOL = {
 }
 
 
-@lru_cache(maxsize=1)
-def _client():
-    return Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-
-
 def extract_facts(text):
-    message = _client().messages.create(
+    message = anthropic_client().messages.create(
         model=settings.ANTHROPIC_MODEL,
         max_tokens=2048,
         tools=[FACT_TOOL],
