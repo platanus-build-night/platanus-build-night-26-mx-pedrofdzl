@@ -1,10 +1,20 @@
+import io
 from unittest.mock import patch
 
 from django.test import TestCase
 from pgvector.django import CosineDistance
 
-from core.models import EMBEDDING_DIM, EvidenceChunk, EvidenceDoc, Fact, FactCitation
+from core.models import (
+    EMBEDDING_DIM,
+    EvidenceChunk,
+    EvidenceDoc,
+    Fact,
+    FactCitation,
+    Questionnaire,
+    Requirement,
+)
 from core.services.ingest import ingest_document
+from core.services.questionnaire_ingest import ingest_questionnaire
 
 
 def unit_vector(index):
@@ -41,3 +51,18 @@ class IngestTests(TestCase):
         fact = Fact.objects.get()
         self.assertIsNotNone(fact.embedding)
         self.assertTrue(FactCitation.objects.filter(fact=fact, evidence_doc=doc).exists())
+
+
+class QuestionnaireIngestTests(TestCase):
+    def test_ingest_csv_creates_requirements(self):
+        csv_bytes = (
+            b"Question,Category\nDo you encrypt data at rest?,Encryption\nIs MFA enforced?,Access\n"
+        )
+        questionnaire = Questionnaire.objects.create(source_name="Bank A")
+
+        summary = ingest_questionnaire(questionnaire, io.BytesIO(csv_bytes), "bank-a.csv")
+
+        self.assertEqual(summary["requirements"], 2)
+        requirement = Requirement.objects.get(text="Do you encrypt data at rest?")
+        self.assertEqual(requirement.category, "Encryption")
+        self.assertEqual(requirement.normalized_key, "do you encrypt data at rest?")
