@@ -170,3 +170,6 @@ SPECTACULAR_SETTINGS = {
 
 OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
 EMBEDDING_MODEL = env("EMBEDDING_MODEL", default="text-embedding-3-small")
+
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+ANTHROPIC_MODEL = env("ANTHROPIC_MODEL", default="claude-sonnet-4-6")
