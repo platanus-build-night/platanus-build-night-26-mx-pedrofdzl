@@ -46,31 +46,31 @@ export function DataTable<T>({
   });
 
   return (
-    <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-            Find:
-          </span>
-          <Input
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder={filterPlaceholder}
-            className="h-7 max-w-xs"
-          />
-          <span className="ml-auto font-mono text-[10px] text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} rows
-          </span>
-        </div>
-      <div className="bevel-inset bg-card">
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <Input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder={filterPlaceholder}
+          className="h-9 max-w-xs"
+        />
+        <span className="ml-auto text-xs text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} rows
+        </span>
+      </div>
+      <div className="border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id} className="border-border hover:bg-transparent">
+              <TableRow
+                key={hg.id}
+                className="border-border bg-muted/50 hover:bg-muted/50"
+              >
                 {hg.headers.map((header) => (
                   <TableHead
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className="h-8 cursor-pointer bg-secondary font-mono text-[10px] tracking-wider text-foreground uppercase select-none"
+                    className="h-10 cursor-pointer text-xs font-medium tracking-wide text-muted-foreground uppercase select-none"
                   >
                     {header.isPlaceholder
                       ? null
@@ -78,7 +78,7 @@ export function DataTable<T>({
                           header.column.columnDef.header,
                           header.getContext(),
                         )}
-                    {{ asc: " ▲", desc: " ▼" }[
+                    {{ asc: " ↑", desc: " ↓" }[
                       header.column.getIsSorted() as string
                     ] ?? null}
                   </TableHead>
@@ -88,13 +88,13 @@ export function DataTable<T>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row, i) => (
+              table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className={i % 2 ? "bg-muted/40" : "bg-card"}
+                  className="border-border hover:bg-muted/40"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-1.5 align-middle">
+                    <TableCell key={cell.id} className="py-2.5 align-middle">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -107,7 +107,7 @@ export function DataTable<T>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-20 text-center font-mono text-xs text-muted-foreground"
+                  className="h-20 text-center text-sm text-muted-foreground"
                 >
                   No records.
                 </TableCell>

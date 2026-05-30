@@ -14,21 +14,12 @@ export function Window({
   children: React.ReactNode;
 }) {
   return (
-    <section className={cn("bevel bg-card", className)}>
-      <header className="titlebar flex h-7 items-center justify-between px-2 select-none">
-        <span className="font-mono text-xs font-semibold tracking-wider uppercase">
-          {title}
-        </span>
-        <div className="flex items-center gap-1">
-          {actions}
-          <span className="ml-1 flex gap-1" aria-hidden>
-            <i className="bevel block size-3 bg-secondary" />
-            <i className="bevel block size-3 bg-secondary" />
-            <i className="bevel block size-3 bg-secondary" />
-          </span>
-        </div>
+    <section className={cn("border border-border bg-card", className)}>
+      <header className="flex h-11 items-center justify-between border-b border-border px-4">
+        <h2 className="text-sm font-medium tracking-tight">{title}</h2>
+        {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
       </header>
-      <div className={cn("p-3", bodyClassName)}>{children}</div>
+      <div className={cn("p-4", bodyClassName)}>{children}</div>
     </section>
   );
 }
@@ -51,15 +42,15 @@ export function Stat({
     warning: "text-warning",
   }[tone];
   return (
-    <div className="bevel-inset bg-input px-3 py-2">
-      <div className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+    <div className="border border-border bg-card p-4">
+      <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
         {label}
       </div>
-      <div className={cn("font-mono text-2xl leading-tight font-semibold", toneClass)}>
+      <div className={cn("mt-2 text-3xl leading-none font-semibold tracking-tight", toneClass)}>
         {value}
       </div>
       {hint ? (
-        <div className="font-mono text-[10px] text-muted-foreground">{hint}</div>
+        <div className="mt-1.5 text-xs text-muted-foreground">{hint}</div>
       ) : null}
     </div>
   );

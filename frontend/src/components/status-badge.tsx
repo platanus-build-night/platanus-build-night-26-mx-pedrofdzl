@@ -7,8 +7,8 @@ const answerMap: Record<
 > = {
   answered: { label: "Answered", variant: "success" },
   draft: { label: "Draft", variant: "warning" },
-  flagged: { label: "Flag !", variant: "destructive" },
-  unanswered: { label: "Open", variant: "secondary" },
+  flagged: { label: "Flagged", variant: "destructive" },
+  unanswered: { label: "Unanswered", variant: "secondary" },
 };
 
 export function AnswerBadge({ status }: { status: AnswerStatus }) {

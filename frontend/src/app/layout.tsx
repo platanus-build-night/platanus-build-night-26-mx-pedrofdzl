@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
-const mono = IBM_Plex_Mono({
+const sans = Geist({
+  variable: "--font-sans",
+  subsets: ["latin"],
+});
+
+const mono = Geist_Mono({
   variable: "--font-mono",
-  weight: ["400", "500", "600"],
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Ditto // Compliance Workstation",
+  title: "Ditto",
   description:
     "Answer once, then ditto across every questionnaire, backed by a cited fact.",
 };
@@ -21,7 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${mono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${sans.variable} ${mono.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>

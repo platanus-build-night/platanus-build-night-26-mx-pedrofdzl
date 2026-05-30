@@ -52,10 +52,10 @@ export default function AccountPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      <h1 className="font-mono text-lg font-semibold tracking-tight">Account</h1>
+    <div className="max-w-3xl space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Stat label="Operator" value={<span className="text-base">{user.email}</span>} />
         <Stat
           label="2FA Status"
@@ -73,17 +73,17 @@ export default function AccountPage() {
         }
       >
         {user.two_factor_enabled ? (
-          <p className="font-mono text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             TOTP is active on this account. A 6-digit code from your
             authenticator app is required at logon.
           </p>
         ) : setup ? (
           <form onSubmit={verify} className="space-y-3">
-            <p className="font-mono text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Scan this code with an authenticator app, then enter the 6-digit
               code to confirm.
             </p>
-            <div className="bevel-inset inline-block bg-input p-2">
+            <div className="inline-block border border-border bg-white p-3">
               <Image
                 src={setup.qr}
                 alt="TOTP QR code"
@@ -93,12 +93,12 @@ export default function AccountPage() {
                 className="block size-40"
               />
             </div>
-            <p className="font-mono text-[10px] break-all text-muted-foreground">
+            <p className="mono text-xs break-all text-muted-foreground">
               {setup.otpauth_url}
             </p>
             <div className="flex items-end gap-2">
               <div className="space-y-1">
-                <Label className="font-mono text-[11px] tracking-wide uppercase">
+                <Label className="text-sm font-medium">
                   Confirmation Code
                 </Label>
                 <Input
@@ -117,7 +117,7 @@ export default function AccountPage() {
           </form>
         ) : (
           <div className="space-y-3">
-            <p className="font-mono text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Add a time-based one-time password (TOTP) as a second factor at
               logon.
             </p>

@@ -17,12 +17,12 @@ function ConfidenceBar({ value }: { value: number }) {
         ? "bg-warning"
         : "bg-destructive";
   return (
-    <div className="flex items-center gap-1.5">
-      <div className="bevel-inset h-3 w-16 bg-input">
+    <div className="flex items-center gap-2">
+      <div className="h-1.5 w-16 bg-muted">
         <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="font-mono text-[11px] tabular-nums">
-        {value ? value.toFixed(2) : "--"}
+      <span className="text-xs tabular-nums text-muted-foreground">
+        {value ? value.toFixed(2) : "—"}
       </span>
     </div>
   );
@@ -33,7 +33,7 @@ export const requirementColumns: ColumnDef<Requirement, unknown>[] = [
     accessorKey: "id",
     header: "ID",
     cell: ({ row }) => (
-      <span className="font-mono text-xs font-semibold text-primary">
+      <span className="font-mono text-xs font-medium text-brand">
         {row.original.id}
       </span>
     ),
@@ -81,7 +81,7 @@ export const issueColumns: ColumnDef<Issue, unknown>[] = [
     accessorKey: "id",
     header: "ID",
     cell: ({ row }) => (
-      <span className="font-mono text-xs font-semibold text-primary">
+      <span className="font-mono text-xs font-medium text-brand">
         {row.original.id}
       </span>
     ),

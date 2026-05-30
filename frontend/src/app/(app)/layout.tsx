@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -12,8 +14,6 @@ const NAV = [
   { href: "/issues", label: "Issues" },
   { href: "/facts", label: "Fact Base" },
 ];
-
-const MENUS = ["File", "Edit", "Audit", "View", "Help"];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
@@ -26,7 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (loading || !user) {
     return (
-      <div className="flex flex-1 items-center justify-center font-mono text-sm text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
         Authenticating...
       </div>
     );
@@ -34,59 +34,51 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-full flex-col">
-      <div className="titlebar flex h-7 items-center justify-between px-2 text-xs">
-        <span className="font-mono font-semibold tracking-widest uppercase">
-          Ditto // Compliance Workstation
-        </span>
-        <Link href="/account" className="font-mono hover:underline">
-          {user.email}
-        </Link>
-      </div>
+      <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4">
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <span className="grid size-6 place-items-center bg-brand text-sm font-bold text-white">
+              D
+            </span>
+            <span className="text-sm font-semibold tracking-tight">Ditto</span>
+          </Link>
 
-      <div className="flex items-center gap-3 border-b border-border bg-secondary px-2 py-0.5 text-xs">
-        {MENUS.map((m) => (
-          <span
-            key={m}
-            className="cursor-default px-1 hover:bg-primary hover:text-primary-foreground"
-          >
-            <u>{m[0]}</u>
-            {m.slice(1)}
-          </span>
-        ))}
-        <button
-          onClick={logout}
-          className="ml-auto px-1 hover:bg-primary hover:text-primary-foreground"
-        >
-          Log&nbsp;Off
-        </button>
-      </div>
+          <nav className="hidden items-center gap-1 md:flex">
+            {NAV.map((item) => {
+              const active = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "px-3 py-1.5 text-sm transition-colors",
+                    active
+                      ? "font-medium text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-      <nav className="flex items-end gap-0.5 border-b-2 border-border bg-muted px-2 pt-1">
-        {NAV.map((item) => {
-          const active = pathname.startsWith(item.href);
-          return (
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
             <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "bevel rounded-none px-3 py-1 font-mono text-xs",
-                active
-                  ? "relative top-px bg-card font-semibold text-primary"
-                  : "bg-secondary text-muted-foreground hover:text-foreground",
-              )}
+              href="/account"
+              className="hidden px-2 text-sm text-muted-foreground hover:text-foreground sm:inline"
             >
-              {item.label}
+              {user.email}
             </Link>
-          );
-        })}
-      </nav>
+            <Button variant="outline" size="sm" onClick={logout}>
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </header>
 
-      <main className="flex-1 overflow-auto p-4">{children}</main>
-
-      <footer className="bevel-inset flex items-center justify-between bg-secondary px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-        <span>READY</span>
-        <span>v1.0.0 // {user.two_factor_enabled ? "2FA ON" : "2FA OFF"}</span>
-      </footer>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8">{children}</main>
     </div>
   );
 }

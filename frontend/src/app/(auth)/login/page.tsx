@@ -36,10 +36,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
-      <Window title="System Logon" className="w-full max-w-sm">
+      <Window title="Sign in" className="w-full max-w-sm">
         <form onSubmit={onSubmit} className="space-y-3">
-          <p className="font-mono text-xs text-muted-foreground">
-            Authenticate to the compliance workstation.
+          <p className="text-sm text-muted-foreground">
+            Sign in to your workspace.
           </p>
           <Field label="Email">
             <Input
@@ -72,12 +72,12 @@ export default function LoginPage() {
           <div className="flex items-center justify-between pt-1">
             <Link
               href="/register"
-              className="font-mono text-xs text-primary underline-offset-2 hover:underline"
+              className="text-sm text-brand underline-offset-2 hover:underline"
             >
               Create account
             </Link>
             <Button type="submit" disabled={busy}>
-              {busy ? "Connecting..." : "Log On"}
+              {busy ? "Signing in..." : "Sign in"}
             </Button>
           </div>
         </form>
@@ -95,7 +95,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1">
-      <Label className="font-mono text-[11px] tracking-wide uppercase">
+      <Label className="text-sm font-medium">
         {label}
       </Label>
       {children}

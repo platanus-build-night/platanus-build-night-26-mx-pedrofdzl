@@ -33,13 +33,13 @@ export default function RegisterPage() {
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
-      <Window title="New Account" className="w-full max-w-sm">
+      <Window title="Create account" className="w-full max-w-sm">
         <form onSubmit={onSubmit} className="space-y-3">
-          <p className="font-mono text-xs text-muted-foreground">
-            Register a new compliance operator.
+          <p className="text-sm text-muted-foreground">
+            Create your account to get started.
           </p>
           <div className="space-y-1">
-            <Label className="font-mono text-[11px] tracking-wide uppercase">
+            <Label className="text-sm font-medium">
               Email
             </Label>
             <Input
@@ -51,7 +51,7 @@ export default function RegisterPage() {
             />
           </div>
           <div className="space-y-1">
-            <Label className="font-mono text-[11px] tracking-wide uppercase">
+            <Label className="text-sm font-medium">
               Password
             </Label>
             <Input
@@ -62,16 +62,16 @@ export default function RegisterPage() {
               minLength={8}
               required
             />
-            <p className="font-mono text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Minimum 8 characters.
             </p>
           </div>
           <div className="flex items-center justify-between pt-1">
             <Link
               href="/login"
-              className="font-mono text-xs text-primary underline-offset-2 hover:underline"
+              className="text-sm text-brand underline-offset-2 hover:underline"
             >
-              Back to logon
+              Back to sign in
             </Link>
             <Button type="submit" disabled={busy}>
               {busy ? "Creating..." : "Create"}

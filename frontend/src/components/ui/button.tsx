@@ -4,19 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button bevel-active legacy-focus inline-flex shrink-0 items-center justify-center rounded-none text-sm font-medium whitespace-nowrap outline-none select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center gap-2 rounded-none border border-transparent text-sm font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bevel bg-primary text-primary-foreground hover:brightness-110",
-        outline: "bevel bg-card text-foreground hover:bg-muted",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        outline:
+          "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bevel bg-secondary text-secondary-foreground hover:brightness-[1.03]",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
-          "border-2 border-transparent hover:bg-muted hover:text-foreground aria-expanded:bg-muted",
+          "hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent",
         destructive:
-          "bevel bg-destructive text-primary-foreground hover:brightness-110",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-destructive text-white hover:bg-destructive/90",
+        link: "text-brand underline-offset-4 hover:underline",
       },
       size: {
         default:

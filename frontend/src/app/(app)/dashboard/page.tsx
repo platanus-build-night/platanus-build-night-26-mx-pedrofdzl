@@ -26,23 +26,23 @@ export default function DashboardPage() {
   ).map(([name, value]) => ({ name, value }));
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-mono text-lg font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight">
             Living Tracker
           </h1>
-          <p className="font-mono text-xs text-muted-foreground">
-            Posture across 3 banks // {total} requirements ingested
+          <p className="mt-1 text-sm text-muted-foreground">
+            Posture across 3 banks · {total} requirements ingested
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary">Import Questionnaire</Button>
+          <Button variant="outline">Import Questionnaire</Button>
           <Button>Run Audit</Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Requirements" value={total} hint="across 3 banks" />
         <Stat
           label="Answered"
@@ -77,7 +77,7 @@ export default function DashboardPage() {
         <ProgressChart />
       </Window>
 
-      <Window title="Open Issues" bodyClassName="p-2">
+      <Window title="Open Issues">
         <DataTable
           columns={issueColumns}
           data={openIssues}
@@ -85,7 +85,7 @@ export default function DashboardPage() {
         />
       </Window>
 
-      <Window title="Requirements" bodyClassName="p-2">
+      <Window title="Requirements">
         <DataTable
           columns={requirementColumns}
           data={requirements}
