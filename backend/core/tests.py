@@ -6,6 +6,8 @@ from pgvector.django import CosineDistance
 
 from core.models import (
     EMBEDDING_DIM,
+    Answer,
+    AnswerCitation,
     EvidenceChunk,
     EvidenceDoc,
     Fact,
@@ -15,6 +17,7 @@ from core.models import (
 )
 from core.services.ingest import ingest_document
 from core.services.questionnaire_ingest import ingest_questionnaire
+from core.services.responder import answer_requirement
 
 
 def unit_vector(index):
@@ -66,3 +69,27 @@ class QuestionnaireIngestTests(TestCase):
         requirement = Requirement.objects.get(text="Do you encrypt data at rest?")
         self.assertEqual(requirement.category, "Encryption")
         self.assertEqual(requirement.normalized_key, "do you encrypt data at rest?")
+
+
+class ResponderTests(TestCase):
+    @patch("core.services.responder.generate_answer")
+    @patch("core.services.responder.embed_text")
+    def test_answer_requirement_creates_answer_with_citations(self, mock_embed, mock_generate):
+        fact = Fact.objects.create(statement="Data is encrypted at rest", embedding=unit_vector(0))
+        mock_embed.return_value = unit_vector(0)
+        mock_generate.return_value = {
+            "answer": "Yes, AES-256 at rest.",
+            "cited_fact_ids": [fact.id],
+            "confidence": 0.9,
+        }
+        questionnaire = Questionnaire.objects.create(source_name="Bank A")
+        requirement = Requirement.objects.create(
+            questionnaire=questionnaire, text="Do you encrypt data at rest?"
+        )
+
+        answer = answer_requirement(requirement)
+
+        self.assertEqual(answer.text, "Yes, AES-256 at rest.")
+        self.assertEqual(answer.confidence, 0.9)
+        self.assertTrue(AnswerCitation.objects.filter(answer=answer, fact=fact).exists())
+        self.assertEqual(Answer.objects.count(), 1)
