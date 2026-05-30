@@ -58,19 +58,16 @@ export function DataTable<T>({
           {table.getFilteredRowModel().rows.length} rows
         </span>
       </div>
-      <div className="border border-border">
+      <div className="overflow-hidden rounded-lg border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
-              <TableRow
-                key={hg.id}
-                className="border-border bg-muted/50 hover:bg-muted/50"
-              >
+              <TableRow key={hg.id} className="border-border hover:bg-transparent">
                 {hg.headers.map((header) => (
                   <TableHead
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    className="h-9 cursor-pointer text-xs font-medium tracking-wide text-muted-foreground uppercase select-none"
+                    className="h-9 cursor-pointer text-sm text-muted-foreground select-none"
                   >
                     {header.isPlaceholder
                       ? null
