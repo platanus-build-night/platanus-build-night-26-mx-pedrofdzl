@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Stat, Window } from "@/components/window";
-import { listEvidenceDocs, listFacts, listIssues, listQuestionnaires } from "@/lib/resources";
+import { listDocuments, listFacts, listIssues, listQuestionnaires } from "@/lib/resources";
 
 export default function DashboardPage() {
   const questionnaires = useQuery({ queryKey: ["questionnaires"], queryFn: listQuestionnaires });
@@ -24,7 +24,7 @@ export default function DashboardPage() {
     queryKey: ["issues", "open"],
     queryFn: () => listIssues({ status: "open" }),
   });
-  const docs = useQuery({ queryKey: ["evidence-docs"], queryFn: listEvidenceDocs });
+  const docs = useQuery({ queryKey: ["documents"], queryFn: () => listDocuments() });
 
   const issueMix = Object.entries(
     (openIssues.data?.results ?? []).reduce<Record<string, number>>((acc, issue) => {
@@ -45,7 +45,7 @@ export default function DashboardPage() {
           value={openIssues.data?.count ?? "-"}
           tone={openIssues.data?.count ? "warning" : "default"}
         />
-        <Stat label="Evidence Docs" value={docs.data?.count ?? "-"} />
+        <Stat label="Documents" value={docs.data?.count ?? "-"} />
       </div>
 
       <div className="grid gap-3 lg:grid-cols-3">

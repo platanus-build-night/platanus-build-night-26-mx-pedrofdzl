@@ -7,7 +7,13 @@ export type Paginated<T> = {
   results: T[];
 };
 
-export type FactStatus = "candidate" | "approved" | "stale";
+export type FactStatus = "candidate" | "approved" | "rejected" | "stale";
+export type FactCitation = {
+  id: number;
+  document: number | null;
+  chunk: number | null;
+  chunk_text: string | null;
+};
 export type Fact = {
   id: number;
   statement: string;
@@ -16,6 +22,7 @@ export type Fact = {
   confidence: number | null;
   review_by: string | null;
   created_at: string;
+  citations?: FactCitation[];
 };
 
 export type IssueType = "unbacked" | "contradiction" | "gap" | "drift" | "stale";
@@ -57,14 +64,41 @@ export type Questionnaire = {
   uploaded_at: string;
 };
 
-export type EvidenceDoc = {
+export type JobStatus = "pending" | "running" | "done" | "failed";
+export type AnalysisJob = {
+  id: number;
+  document: number;
+  status: JobStatus;
+  step: string;
+  processed: number;
+  total: number;
+  facts_created: number;
+  percent: number;
+  error: string;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+};
+
+export type DocType = "text" | "docx";
+export type Document = {
   id: number;
   name: string;
   content: string;
   source_file: string | null;
+  doc_type: DocType;
+  category: number | null;
   style_guide_section: string;
   created_at: string;
   updated_at: string;
+  latest_job: { id: number; status: JobStatus; step: string; percent: number } | null;
+};
+
+export type Category = {
+  id: number;
+  name: string;
+  parent: number | null;
+  created_at: string;
 };
 
 function qs(params?: Record<string, string | number | undefined>): string {
@@ -75,8 +109,12 @@ function qs(params?: Record<string, string | number | undefined>): string {
   return "?" + new URLSearchParams(entries.map(([k, v]) => [k, String(v)])).toString();
 }
 
-export const listFacts = (params?: { status?: string; category?: string; search?: string }) =>
-  api<Paginated<Fact>>(`/facts/${qs(params)}`);
+export const listFacts = (params?: {
+  status?: string;
+  category?: string;
+  search?: string;
+  document?: number;
+}) => api<Paginated<Fact>>(`/facts/${qs(params)}`);
 
 export const listIssues = (params?: { status?: string; type?: string }) =>
   api<Paginated<Issue>>(`/issues/${qs(params)}`);
@@ -86,11 +124,7 @@ export const listRequirements = (params?: { questionnaire?: number; search?: str
 
 export const listQuestionnaires = () => api<Paginated<Questionnaire>>("/questionnaires/");
 
-export const listEvidenceDocs = () => api<Paginated<EvidenceDoc>>("/evidence-docs/");
-
 export const getQuestionnaire = (id: number) => api<Questionnaire>(`/questionnaires/${id}/`);
-
-export const getEvidenceDoc = (id: number) => api<EvidenceDoc>(`/evidence-docs/${id}/`);
 
 export const listAnswers = (params?: { requirement?: number }) =>
   api<Paginated<Answer>>(`/answers/${qs(params)}`);
@@ -109,8 +143,42 @@ export const answerRequirement = (id: number) =>
 
 export const auditAnswer = (id: number) => api<Issue[]>(`/answers/${id}/audit/`, { method: "POST" });
 
-export const createEvidenceDoc = (data: { name: string; content: string }) =>
-  api<EvidenceDoc>("/evidence-docs/", { method: "POST", body: JSON.stringify(data) });
+export const listCategories = () => api<Paginated<Category>>("/categories/");
 
-export const ingestEvidenceDoc = (id: number) =>
-  api<{ chunks: number; facts: number }>(`/evidence-docs/${id}/ingest/`, { method: "POST" });
+export const createCategory = (data: { name: string; parent?: number | null }) =>
+  api<Category>("/categories/", { method: "POST", body: JSON.stringify(data) });
+
+export const deleteCategory = (id: number) =>
+  api<void>(`/categories/${id}/`, { method: "DELETE" });
+
+export const listDocuments = (params?: { category?: number }) =>
+  api<Paginated<Document>>(`/documents/${qs(params)}`);
+
+export const getDocument = (id: number) => api<Document>(`/documents/${id}/`);
+
+export const createTextDocument = (data: {
+  name: string;
+  content: string;
+  category?: number | null;
+}) => api<Document>("/documents/", { method: "POST", body: JSON.stringify({ ...data, doc_type: "text" }) });
+
+export const uploadDocument = (form: FormData) =>
+  api<Document>("/documents/", { method: "POST", body: form });
+
+export const analyzeDocument = (id: number) =>
+  api<AnalysisJob>(`/documents/${id}/analyze/`, { method: "POST" });
+
+export const saveDocumentContent = (id: number, content: string) =>
+  api<AnalysisJob>(`/documents/${id}/content/`, {
+    method: "PUT",
+    body: JSON.stringify({ content }),
+  });
+
+export const getAnalysisJob = (id: number) => api<AnalysisJob>(`/analysis-jobs/${id}/`);
+
+export const approveFact = (id: number) => api<Fact>(`/facts/${id}/approve/`, { method: "POST" });
+
+export const rejectFact = (id: number) => api<Fact>(`/facts/${id}/reject/`, { method: "POST" });
+
+export const updateFact = (id: number, data: { statement?: string; category?: string }) =>
+  api<Fact>(`/facts/${id}/`, { method: "PATCH", body: JSON.stringify(data) });

@@ -18,16 +18,17 @@ import {
 } from "@/components/ui/table";
 import { Window } from "@/components/window";
 import {
-  createEvidenceDoc,
-  ingestEvidenceDoc,
-  listEvidenceDocs,
+  analyzeDocument,
+  createTextDocument,
+  listDocuments,
   listFacts,
   type FactStatus,
 } from "@/lib/resources";
 
-const statusVariant: Record<FactStatus, "success" | "warning" | "secondary"> = {
+const statusVariant: Record<FactStatus, "success" | "warning" | "secondary" | "destructive"> = {
   approved: "success",
   candidate: "secondary",
+  rejected: "destructive",
   stale: "warning",
 };
 
@@ -41,23 +42,23 @@ export default function FactBasePage() {
     queryKey: ["facts", search],
     queryFn: () => listFacts({ search: search || undefined }),
   });
-  const docs = useQuery({ queryKey: ["evidence-docs"], queryFn: listEvidenceDocs });
+  const docs = useQuery({ queryKey: ["documents"], queryFn: () => listDocuments() });
 
   const addDoc = useMutation({
-    mutationFn: () => createEvidenceDoc({ name: docName, content: docContent }),
+    mutationFn: () => createTextDocument({ name: docName, content: docContent }),
     onSuccess: () => {
       toast.success("Document added.");
       setDocName("");
       setDocContent("");
-      queryClient.invalidateQueries({ queryKey: ["evidence-docs"] });
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
     onError: (error) => toast.error((error as Error).message),
   });
 
   const ingest = useMutation({
-    mutationFn: (docId: number) => ingestEvidenceDoc(docId),
-    onSuccess: (summary) => {
-      toast.success(`Extracted ${summary.facts} facts.`);
+    mutationFn: (docId: number) => analyzeDocument(docId),
+    onSuccess: (job) => {
+      toast.success(`Extracted ${job.facts_created} facts.`);
       queryClient.invalidateQueries({ queryKey: ["facts"] });
     },
     onError: (error) => toast.error((error as Error).message),
