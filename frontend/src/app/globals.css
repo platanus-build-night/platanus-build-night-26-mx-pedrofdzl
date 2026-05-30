@@ -71,15 +71,15 @@
   --success-foreground: #ffffff;
   --warning: #d97706;
   --warning-foreground: #ffffff;
-  --brand: #7c5cff;
+  --brand: #18181b;
   --border: #e4e4e7;
   --input: #e4e4e7;
-  --ring: #7c5cff;
-  --chart-1: #7c5cff;
-  --chart-2: #2dd4bf;
+  --ring: #18181b;
+  --chart-1: #2563eb;
+  --chart-2: #0891b2;
   --chart-3: #f59e0b;
-  --chart-4: #ec4899;
-  --chart-5: #38bdf8;
+  --chart-4: #e11d48;
+  --chart-5: #64748b;
   --radius: 0.625rem;
 }
 
@@ -104,15 +104,15 @@
   --success-foreground: #052e16;
   --warning: #fbbf24;
   --warning-foreground: #1c1207;
-  --brand: #a78bfa;
+  --brand: #fafafa;
   --border: #27272a;
   --input: #2a2a2e;
-  --ring: #a78bfa;
-  --chart-1: #a78bfa;
-  --chart-2: #2dd4bf;
-  --chart-3: #f59e0b;
-  --chart-4: #f472b6;
-  --chart-5: #38bdf8;
+  --ring: #fafafa;
+  --chart-1: #60a5fa;
+  --chart-2: #22d3ee;
+  --chart-3: #fbbf24;
+  --chart-4: #fb7185;
+  --chart-5: #94a3b8;
 }
 
 @layer base {
@@ -143,4 +143,13 @@
     font-family: var(--font-heading);
     letter-spacing: -0.01em;
   }
+}
+
+/* No heavy fonts: force a uniform 400 weight across the UI (unlayered, overrides utilities). */
+.font-medium,
+.font-semibold,
+.font-bold,
+strong,
+b {
+  font-weight: 400;
 }

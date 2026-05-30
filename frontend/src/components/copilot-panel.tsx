@@ -109,7 +109,7 @@ export function CopilotPanel() {
                 className={cn(
                   "max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap",
                   turn.role === "user"
-                    ? "bg-brand text-white"
+                    ? "bg-primary text-primary-foreground"
                     : "border border-border bg-background",
                 )}
               >
