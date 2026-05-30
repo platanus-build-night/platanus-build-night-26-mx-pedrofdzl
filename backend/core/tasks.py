@@ -1,9 +1,10 @@
 from celery import shared_task
 from django.utils import timezone
 
-from core.models import AnalysisJob
+from core.models import AnalysisJob, Questionnaire
 from core.services.freshness import sweep_stale_facts
 from core.services.ingest import run_pipeline
+from core.services.responder import answer_requirement
 
 
 @shared_task
@@ -41,3 +42,10 @@ def analyze_document(job_id):
         job.error = str(exc)
     job.finished_at = timezone.now()
     job.save()
+
+
+@shared_task
+def answer_questionnaire(questionnaire_id):
+    questionnaire = Questionnaire.objects.get(id=questionnaire_id)
+    for req in questionnaire.requirements.all():
+        answer_requirement(req)

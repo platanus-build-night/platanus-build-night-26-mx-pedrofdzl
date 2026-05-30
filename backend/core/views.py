@@ -33,7 +33,7 @@ from core.services.copilot import stream_chat
 from core.services.questionnaire_export import export_questionnaire
 from core.services.questionnaire_ingest import ingest_questionnaire
 from core.services.responder import answer_requirement
-from core.tasks import analyze_document
+from core.tasks import analyze_document, answer_questionnaire
 
 SUMMARY = OpenApiResponse(description="Operation summary")
 
@@ -160,8 +160,8 @@ class QuestionnaireViewSet(viewsets.ModelViewSet):
     @extend_schema(request=None, responses=SUMMARY)
     @action(detail=True, methods=["post"])
     def answer(self, request, pk=None):
-        answered = [answer_requirement(req) for req in self.get_object().requirements.all()]
-        return Response({"answered": len(answered)})
+        answer_questionnaire.delay(self.get_object().pk)
+        return Response({"status": "queued"})
 
     @extend_schema(
         request=None,
