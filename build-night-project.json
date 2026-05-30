@@ -1,5 +1,5 @@
 {
-  "project-name": "",
-  "project-oneliner": "",
-  "project-description": ""
+  "project-name": "Ditto",
+  "project-oneliner": "Answer once, then ditto across every questionnaire — grounded in cited facts.",
+  "project-description": "Ditto is an autonomous compliance agent that eliminates the manual grind of vendor security questionnaires. Upload any bank's questionnaire in any format (CSV or Excel, any column layout) and Ditto auto-detects the structure, ingests each requirement, and answers it using a curated Fact base extracted from your own policy documents. Every answer cites the exact facts it relied on, and an adversarial auditor flags unbacked claims or contradictions. Gaps and issues become tracked items on a living dashboard. When you're done, export the original file with answers written back into the right columns, ready to send."
 }
