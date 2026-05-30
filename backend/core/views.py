@@ -1,11 +1,14 @@
+from django.http import StreamingHttpResponse
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from core.models import Answer, EvidenceDoc, Fact, Issue, Questionnaire, Requirement
 from core.serializers import (
     AnswerSerializer,
+    ChatRequestSerializer,
     EvidenceDocSerializer,
     FactSerializer,
     IssueSerializer,
@@ -13,6 +16,7 @@ from core.serializers import (
     RequirementSerializer,
 )
 from core.services.auditor import audit_answer
+from core.services.copilot import stream_chat
 from core.services.ingest import ingest_document
 from core.services.questionnaire_ingest import ingest_questionnaire
 from core.services.responder import answer_requirement
@@ -84,3 +88,20 @@ class IssueViewSet(viewsets.ModelViewSet):
     queryset = Issue.objects.all()
     serializer_class = IssueSerializer
     filterset_fields = ["type", "status", "requirement"]
+
+
+class CopilotChatView(APIView):
+    @extend_schema(
+        request=ChatRequestSerializer,
+        responses=OpenApiResponse(description="text/event-stream of the copilot reply"),
+    )
+    def post(self, request):
+        serializer = ChatRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        response = StreamingHttpResponse(
+            stream_chat(serializer.validated_data["messages"]),
+            content_type="text/event-stream",
+        )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response

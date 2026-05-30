@@ -64,3 +64,12 @@ class IssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = ["id", "type", "requirement", "fact", "description", "status", "created_at"]
+
+
+class ChatMessageSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(choices=["user", "assistant"])
+    content = serializers.CharField()
+
+
+class ChatRequestSerializer(serializers.Serializer):
+    messages = ChatMessageSerializer(many=True)
