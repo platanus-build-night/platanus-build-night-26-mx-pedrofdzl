@@ -9,6 +9,7 @@ import {
   IssueMixChart,
 } from "@/components/charts";
 import { Button } from "@/components/ui/button";
+import { TopBarActions } from "@/components/top-bar";
 import { issues, requirements } from "@/lib/mock";
 
 export default function DashboardPage() {
@@ -27,21 +28,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">
-            Living Tracker
-          </h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Posture across 3 banks · {total} requirements ingested
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            Import Questionnaire
-          </Button>
-          <Button size="sm">Run Audit</Button>
-        </div>
+      <TopBarActions>
+        <Button variant="outline" size="sm">
+          Import Questionnaire
+        </Button>
+        <Button size="sm">Run Audit</Button>
+      </TopBarActions>
+
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight">Living Tracker</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Posture across 3 banks · {total} requirements ingested
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
