@@ -1,5 +1,6 @@
-from core.models import DocumentChunk, Fact, FactCitation
+from core.models import Document, DocumentChunk, Fact, FactCitation
 from core.services.chunking import chunk_text
+from core.services.docx import parse_docx
 from core.services.embeddings import embed_texts
 from core.services.extraction import extract_facts
 
@@ -20,6 +21,16 @@ def run_pipeline(document, job=None, reset=False):
         if total is not None:
             job.total = total
         job.save(update_fields=["step", "processed", "total", "updated_at"])
+
+    if (
+        document.doc_type == Document.DocType.DOCX
+        and document.source_file
+        and not document.content.strip()
+    ):
+        step("parse")
+        document.source_file.open("rb")
+        document.content = parse_docx(document.source_file)
+        document.save(update_fields=["content", "updated_at"])
 
     if reset:
         _reset_candidates(document)
