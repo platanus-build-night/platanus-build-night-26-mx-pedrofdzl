@@ -1,21 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { type ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
+import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Window } from "@/components/window";
-import { listFacts, type FactStatus } from "@/lib/resources";
+import { listFacts, type Fact, type FactStatus } from "@/lib/resources";
 import { cn } from "@/lib/utils";
 
 const statusVariant: Record<FactStatus, "success" | "warning" | "secondary" | "destructive"> = {
@@ -30,6 +23,42 @@ const FILTERS = [
   { key: "candidate", label: "Candidate" },
   { key: "approved", label: "Approved" },
   { key: "rejected", label: "Rejected" },
+];
+
+const columns: ColumnDef<Fact, any>[] = [
+  {
+    accessorKey: "statement",
+    header: "Statement",
+    enableSorting: false,
+    meta: { className: "max-w-sm" },
+    cell: ({ row }) => (
+      <span className="line-clamp-2 whitespace-normal leading-snug">{row.original.statement}</span>
+    ),
+  },
+  {
+    accessorKey: "category",
+    header: "Category",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.category || "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <Badge variant={statusVariant[row.original.status]}>{row.original.status}</Badge>
+    ),
+  },
+  {
+    accessorKey: "confidence",
+    header: "Confidence",
+    meta: { align: "right" },
+    cell: ({ row }) => (
+      <span className="tabular-nums text-muted-foreground">
+        {row.original.confidence == null ? "—" : `${Math.round(row.original.confidence * 100)}%`}
+      </span>
+    ),
+  },
 ];
 
 export default function FactBasePage() {
@@ -70,43 +99,16 @@ export default function FactBasePage() {
         ))}
       </div>
 
-      <Window title={`Facts${facts.data ? ` (${facts.data.count})` : ""}`}>
-        {facts.isLoading ? (
-          <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Skeleton key={index} className="h-8 w-full" />
-            ))}
-          </div>
-        ) : facts.data && facts.data.results.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Statement</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Confidence</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {facts.data.results.map((fact) => (
-                <TableRow key={fact.id}>
-                  <TableCell className="max-w-md">{fact.statement}</TableCell>
-                  <TableCell className="text-muted-foreground">{fact.category || "-"}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant[fact.status]}>{fact.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {fact.confidence == null ? "-" : `${Math.round(fact.confidence * 100)}%`}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            No facts. Add and analyze a document to populate the fact base.
-          </p>
-        )}
+      <Window
+        title={`Facts${facts.data ? ` (${facts.data.count})` : ""}`}
+        bodyClassName="p-0 overflow-hidden"
+      >
+        <DataTable
+          columns={columns}
+          data={facts.data?.results ?? []}
+          isLoading={facts.isLoading}
+          emptyMessage="No facts. Add and analyze a document to populate the fact base."
+        />
       </Window>
     </div>
   );

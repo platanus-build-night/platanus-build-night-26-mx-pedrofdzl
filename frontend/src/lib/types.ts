@@ -1,29 +1,11 @@
 export type AnswerStatus = "answered" | "draft" | "flagged" | "unanswered";
 export type IssueType =
-  | "unbacked"
+  | "missing_policy"
+  | "missing_evidence"
+  | "implementation_gap"
   | "contradiction"
-  | "gap"
-  | "drift"
-  | "stale";
-export type IssueStatus = "open" | "closed";
-
-export type Requirement = {
-  id: string;
-  bank: string;
-  category: string;
-  question: string;
-  status: AnswerStatus;
-  confidence: number;
-  citations: number;
-  updated: string;
-};
-
-export type Issue = {
-  id: string;
-  type: IssueType;
-  requirementId: string;
-  bank: string;
-  description: string;
-  status: IssueStatus;
-  opened: string;
-};
+  | "unbacked_claim"
+  | "stale_fact"
+  | "commitment";
+export type IssueSeverity = "low" | "medium" | "high";
+export type IssueStatus = "open" | "in_progress" | "closed";

@@ -56,12 +56,13 @@ export function TopBar() {
       <div className="ml-auto flex items-center gap-2">
         <div id="topbar-actions" className="flex items-center gap-2" />
         <Button
-          variant={open ? "secondary" : "ghost"}
+          variant="secondary"
           size="sm"
           className="gap-1.5"
+          aria-pressed={open}
           onClick={toggle}
         >
-          <MessageSquare className="size-4" />
+          <MessageSquare />
           Chat
         </Button>
       </div>

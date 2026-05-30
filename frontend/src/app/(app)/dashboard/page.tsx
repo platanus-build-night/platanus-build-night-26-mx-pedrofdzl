@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 
 import { IssueMixChart } from "@/components/charts";
+import { IssueCalendar } from "@/components/issue-calendar";
 import { IssueTypeBadge } from "@/components/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -26,24 +27,36 @@ export default function DashboardPage() {
   });
   const docs = useQuery({ queryKey: ["documents"], queryFn: () => listDocuments() });
 
+  const openResults = openIssues.data?.results ?? [];
   const issueMix = Object.entries(
-    (openIssues.data?.results ?? []).reduce<Record<string, number>>((acc, issue) => {
+    openResults.reduce<Record<string, number>>((acc, issue) => {
       acc[issue.type] = (acc[issue.type] ?? 0) + 1;
       return acc;
     }, {}),
   ).map(([name, value]) => ({ name, value }));
 
+  const now = new Date();
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const overdueCount = openResults.filter(
+    (issue) => issue.due_date && issue.due_date.slice(0, 10) < todayKey,
+  ).length;
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label="Questionnaires" value={questionnaires.data?.count ?? "-"} />
         <Stat label="Facts" value={facts.data?.count ?? "-"} />
         <Stat
           label="Open Issues"
           value={openIssues.data?.count ?? "-"}
           tone={openIssues.data?.count ? "warning" : "default"}
+        />
+        <Stat
+          label="Overdue"
+          value={openIssues.isLoading ? "-" : overdueCount}
+          tone={overdueCount ? "danger" : "default"}
         />
         <Stat label="Documents" value={docs.data?.count ?? "-"} />
       </div>
@@ -84,6 +97,14 @@ export default function DashboardPage() {
           )}
         </Window>
       </div>
+
+      <Window title="Upcoming deadlines">
+        {openResults.some((issue) => issue.due_date) ? (
+          <IssueCalendar issues={openResults} />
+        ) : (
+          <p className="text-sm text-muted-foreground">No open issues with due dates.</p>
+        )}
+      </Window>
 
       <Window title="Questionnaires">
         {questionnaires.isLoading ? (

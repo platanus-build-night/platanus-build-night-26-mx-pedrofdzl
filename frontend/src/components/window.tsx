@@ -14,12 +14,12 @@ export function Window({
   children: React.ReactNode;
 }) {
   return (
-    <section className={cn("rounded-lg border border-border bg-card", className)}>
-      <header className="flex h-10 items-center justify-between border-b border-border px-3">
-        <h2 className="text-sm font-medium tracking-tight">{title}</h2>
+    <section className={cn("rounded-lg border border-border/60 bg-card", className)}>
+      <header className="flex h-10 items-center justify-between border-b border-border/60 px-3.5">
+        <h2 className="text-sm font-medium leading-none tracking-tight">{title}</h2>
         {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
       </header>
-      <div className={cn("p-3", bodyClassName)}>{children}</div>
+      <div className={cn("p-3.5", bodyClassName)}>{children}</div>
     </section>
   );
 }
@@ -42,11 +42,11 @@ export function Stat({
     warning: "text-warning",
   }[tone];
   return (
-    <div className="rounded-lg border border-border bg-card p-3">
-      <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+    <div className="rounded-lg border border-border/60 bg-card p-3.5">
+      <div className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
         {label}
       </div>
-      <div className={cn("mt-1.5 text-2xl leading-none font-semibold tracking-tight", toneClass)}>
+      <div className={cn("mt-1.5 text-2xl leading-none font-semibold tracking-tight tabular-nums", toneClass)}>
         {value}
       </div>
       {hint ? (

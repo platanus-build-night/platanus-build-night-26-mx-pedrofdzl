@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { AnswerStatus, IssueStatus, IssueType } from "@/lib/types";
+import type { AnswerStatus, IssueSeverity, IssueStatus, IssueType } from "@/lib/types";
 
 const answerMap: Record<
   AnswerStatus,
@@ -16,25 +16,48 @@ export function AnswerBadge({ status }: { status: AnswerStatus }) {
   return <Badge variant={variant}>{label}</Badge>;
 }
 
-const issueMap: Record<IssueType, string> = {
-  unbacked: "Unbacked",
-  contradiction: "Conflict",
-  gap: "Gap",
-  drift: "Drift",
-  stale: "Stale",
+const issueMap: Record<
+  IssueType,
+  { label: string; variant: "destructive" | "warning" | "secondary" }
+> = {
+  missing_policy: { label: "Missing Policy", variant: "destructive" },
+  missing_evidence: { label: "Missing Evidence", variant: "warning" },
+  implementation_gap: { label: "Implementation Gap", variant: "warning" },
+  contradiction: { label: "Contradiction", variant: "destructive" },
+  unbacked_claim: { label: "Unbacked Claim", variant: "destructive" },
+  stale_fact: { label: "Stale Fact", variant: "warning" },
+  commitment: { label: "Commitment", variant: "secondary" },
 };
 
 export function IssueTypeBadge({ type }: { type: IssueType }) {
-  const danger = type === "contradiction" || type === "unbacked";
-  return (
-    <Badge variant={danger ? "destructive" : "warning"}>{issueMap[type]}</Badge>
-  );
+  const { label, variant } = issueMap[type];
+  return <Badge variant={variant}>{label}</Badge>;
 }
 
+const severityMap: Record<
+  IssueSeverity,
+  { label: string; variant: "ghost" | "warning" | "destructive" }
+> = {
+  low: { label: "Low", variant: "ghost" },
+  medium: { label: "Medium", variant: "warning" },
+  high: { label: "High", variant: "destructive" },
+};
+
+export function IssueSeverityBadge({ severity }: { severity: IssueSeverity }) {
+  const { label, variant } = severityMap[severity];
+  return <Badge variant={variant}>{label}</Badge>;
+}
+
+const issueStatusMap: Record<
+  IssueStatus,
+  { label: string; variant: "outline" | "warning" | "success" }
+> = {
+  open: { label: "Open", variant: "outline" },
+  in_progress: { label: "In Progress", variant: "warning" },
+  closed: { label: "Closed", variant: "success" },
+};
+
 export function IssueStatusBadge({ status }: { status: IssueStatus }) {
-  return (
-    <Badge variant={status === "open" ? "outline" : "success"}>
-      {status === "open" ? "Open" : "Closed"}
-    </Badge>
-  );
+  const { label, variant } = issueStatusMap[status];
+  return <Badge variant={variant}>{label}</Badge>;
 }

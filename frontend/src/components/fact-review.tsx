@@ -55,7 +55,7 @@ export function FactReview({ documentId }: { documentId: number }) {
   const results = facts.data?.results ?? [];
   if (results.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-[13px] text-muted-foreground">
         No facts yet. Analyze the document to extract candidate facts.
       </p>
     );
@@ -64,9 +64,9 @@ export function FactReview({ documentId }: { documentId: number }) {
   return (
     <div className="space-y-2">
       {results.map((fact) => (
-        <div key={fact.id} className="rounded-lg border border-border p-3">
+        <div key={fact.id} className="rounded-lg border border-border/60 p-3.5">
           {editing === fact.id ? (
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Input value={draft} onChange={(event) => setDraft(event.target.value)} />
               <Button
                 size="sm"
@@ -82,23 +82,23 @@ export function FactReview({ documentId }: { documentId: number }) {
           ) : (
             <>
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm">{fact.statement}</p>
+                <p className="text-[13px] leading-relaxed">{fact.statement}</p>
                 <Badge variant={statusVariant[fact.status]}>{fact.status}</Badge>
               </div>
               {fact.citations?.[0]?.chunk_text ? (
-                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
                   From: {fact.citations[0].chunk_text}
                 </p>
               ) : null}
               {fact.status === "candidate" ? (
-                <div className="mt-2 flex gap-1.5">
+                <div className="mt-2.5 flex gap-1.5">
                   <Button
                     size="sm"
                     variant="secondary"
                     onClick={() => approve.mutate(fact.id)}
                     disabled={approve.isPending}
                   >
-                    <Check className="size-3.5" />
+                    <Check />
                     Approve
                   </Button>
                   <Button
@@ -107,7 +107,7 @@ export function FactReview({ documentId }: { documentId: number }) {
                     onClick={() => reject.mutate(fact.id)}
                     disabled={reject.isPending}
                   >
-                    <X className="size-3.5" />
+                    <X />
                     Reject
                   </Button>
                   <Button
@@ -118,7 +118,7 @@ export function FactReview({ documentId }: { documentId: number }) {
                       setDraft(fact.statement);
                     }}
                   >
-                    <Pencil className="size-3.5" />
+                    <Pencil />
                     Edit
                   </Button>
                 </div>

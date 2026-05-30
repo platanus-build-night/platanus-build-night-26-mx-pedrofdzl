@@ -1,15 +1,22 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Folder, FolderPlus } from "lucide-react";
+import { ChevronRight, FileText, Folder, FolderPlus } from "lucide-react";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { FileUpload } from "@/components/ui/file-upload";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -28,39 +35,69 @@ import {
   listDocuments,
   uploadDocument,
   type Category,
+  type Document,
 } from "@/lib/resources";
 import { cn } from "@/lib/utils";
 
-function depthOf(category: Category, byId: Map<number, Category>) {
-  let depth = 0;
-  let parent = category.parent;
-  while (parent != null) {
-    depth += 1;
-    parent = byId.get(parent)?.parent ?? null;
+const STATUS_LABEL: Record<string, string> = {
+  pending: "Queued",
+  running: "Analyzing",
+  done: "Analyzed",
+  failed: "Failed",
+};
+
+function StatusPill({ doc }: { doc: Document }) {
+  const status = doc.latest_job?.status;
+  if (!status) return <span className="text-muted-foreground">Not analyzed</span>;
+  const tone =
+    status === "done"
+      ? "text-success"
+      : status === "failed"
+        ? "text-destructive"
+        : "text-muted-foreground";
+  return <span className={tone}>{STATUS_LABEL[status] ?? status}</span>;
+}
+
+function pathOf(folderId: number | null, byId: Map<number, Category>) {
+  const path: Category[] = [];
+  let cur = folderId != null ? byId.get(folderId) : undefined;
+  while (cur) {
+    path.unshift(cur);
+    cur = cur.parent != null ? byId.get(cur.parent) : undefined;
   }
-  return depth;
+  return path;
 }
 
 export default function DocumentsPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { track } = useAnalysis();
   const [selected, setSelected] = useState<number | null>(null);
   const [folderName, setFolderName] = useState("");
+  const [folderOpen, setFolderOpen] = useState(false);
   const [uploadName, setUploadName] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
 
   const categories = useQuery({ queryKey: ["categories"], queryFn: listCategories });
-  const documents = useQuery({
-    queryKey: ["documents", selected],
-    queryFn: () => listDocuments(selected != null ? { category: selected } : undefined),
-  });
+  const documents = useQuery({ queryKey: ["documents"], queryFn: () => listDocuments() });
 
-  const byId = new Map((categories.data?.results ?? []).map((c) => [c.id, c]));
+  const allCategories = categories.data?.results ?? [];
+  const allDocuments = documents.data?.results ?? [];
+  const byId = new Map(allCategories.map((c) => [c.id, c]));
+
+  const subfolders = allCategories.filter((c) => c.parent === selected);
+  const files = allDocuments.filter((d) => d.category === selected);
+  const trail = pathOf(selected, byId);
+
+  const countInside = (id: number) =>
+    allCategories.filter((c) => c.parent === id).length +
+    allDocuments.filter((d) => d.category === id).length;
 
   const newFolder = useMutation({
-    mutationFn: () => createCategory({ name: folderName, parent: selected }),
+    mutationFn: () => createCategory({ name: folderName.trim(), parent: selected }),
     onSuccess: () => {
       setFolderName("");
+      setFolderOpen(false);
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
     onError: (error) => toast.error((error as Error).message),
@@ -68,24 +105,23 @@ export default function DocumentsPage() {
 
   const upload = useMutation({
     mutationFn: async () => {
-      const file = fileRef.current?.files?.[0];
-      if (!file) throw new Error("Choose a file first.");
-      const name = uploadName || file.name;
-      if (file.name.toLowerCase().endsWith(".docx")) {
+      if (!uploadFile) throw new Error("Choose a file first.");
+      const name = uploadName || uploadFile.name;
+      if (uploadFile.name.toLowerCase().endsWith(".docx")) {
         const form = new FormData();
         form.append("name", name);
         form.append("doc_type", "docx");
         if (selected != null) form.append("category", String(selected));
-        form.append("source_file", file);
+        form.append("source_file", uploadFile);
         return uploadDocument(form);
       }
-      const content = await file.text();
+      const content = await uploadFile.text();
       return createTextDocument({ name, content, category: selected });
     },
     onSuccess: () => {
       toast.success("Document uploaded.");
       setUploadName("");
-      if (fileRef.current) fileRef.current.value = "";
+      setUploadFile(null);
       queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
     onError: (error) => toast.error((error as Error).message),
@@ -97,144 +133,175 @@ export default function DocumentsPage() {
     onError: (error) => toast.error((error as Error).message),
   });
 
+  const isEmpty = subfolders.length === 0 && files.length === 0;
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
-      <Window title="Folders">
-        <div className="space-y-0.5">
-          <button
-            onClick={() => setSelected(null)}
-            className={cn(
-              "flex w-full items-center gap-2 rounded-md px-2 py-1 text-sm",
-              selected === null ? "bg-accent" : "hover:bg-accent/50",
-            )}
-          >
-            <Folder className="size-4 text-muted-foreground" />
-            All documents
-          </button>
-          {(categories.data?.results ?? []).map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setSelected(category.id)}
-              style={{ paddingLeft: 8 + depthOf(category, byId) * 12 }}
-              className={cn(
-                "flex w-full items-center gap-2 rounded-md py-1 pr-2 text-sm",
-                selected === category.id ? "bg-accent" : "hover:bg-accent/50",
-              )}
-            >
-              <Folder className="size-4 text-muted-foreground" />
-              {category.name}
-            </button>
-          ))}
-        </div>
+    <div className="space-y-5">
+      <h1 className="text-xl font-semibold tracking-tight">Documents</h1>
+
+      <Window title="Upload document">
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            if (folderName) newFolder.mutate();
+            upload.mutate();
           }}
-          className="mt-3 flex gap-1.5"
+          className="space-y-3"
         >
-          <Input
-            value={folderName}
-            onChange={(event) => setFolderName(event.target.value)}
-            placeholder="New folder"
-            className="h-8"
+          <FileUpload
+            accept=".docx,.md,.txt"
+            value={uploadFile}
+            onChange={setUploadFile}
+            disabled={upload.isPending}
+            hint="Accepts .docx, .md, .txt"
           />
-          <Button
-            type="submit"
-            size="icon"
-            variant="secondary"
-            aria-label="Add folder"
-            disabled={!folderName || newFolder.isPending}
-          >
-            <FolderPlus className="size-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <Input
+              placeholder="Name (optional, defaults to filename)"
+              value={uploadName}
+              onChange={(event) => setUploadName(event.target.value)}
+              disabled={upload.isPending}
+            />
+            <Button type="submit" disabled={!uploadFile || upload.isPending} className="shrink-0">
+              {upload.isPending ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
         </form>
       </Window>
 
-      <div className="space-y-4">
-        <Window title="Upload">
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              upload.mutate();
-            }}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Input
-              placeholder="Name (optional)"
-              value={uploadName}
-              onChange={(event) => setUploadName(event.target.value)}
-              className="max-w-xs"
+      <Window
+        title={
+          <nav className="flex items-center gap-0.5 text-sm">
+            <button
+              onClick={() => setSelected(null)}
+              className={cn(
+                "rounded-sm px-1.5 py-0.5 transition-colors hover:bg-accent",
+                selected === null ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              All documents
+            </button>
+            {trail.map((folder) => (
+              <span key={folder.id} className="flex items-center gap-0.5">
+                <ChevronRight className="size-3.5 text-muted-foreground/60" />
+                <button
+                  onClick={() => setSelected(folder.id)}
+                  className={cn(
+                    "rounded-sm px-1.5 py-0.5 transition-colors hover:bg-accent",
+                    folder.id === selected ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
+                  {folder.name}
+                </button>
+              </span>
+            ))}
+          </nav>
+        }
+        actions={
+          <Dialog open={folderOpen} onOpenChange={setFolderOpen}>
+            <DialogTrigger
+              render={
+                <Button variant="tertiary" size="sm">
+                  <FolderPlus />
+                  New folder
+                </Button>
+              }
             />
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".docx,.md,.txt"
-              className="text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:text-foreground"
-            />
-            <Button type="submit" disabled={upload.isPending}>
-              {upload.isPending ? "Uploading..." : "Upload"}
-            </Button>
-          </form>
-        </Window>
-
-        <Window title={`Documents${documents.data ? ` (${documents.data.count})` : ""}`}>
-          {documents.isLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <Skeleton key={index} className="h-8 w-full" />
-              ))}
-            </div>
-          ) : documents.data && documents.data.results.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>New folder</DialogTitle>
+              </DialogHeader>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (folderName.trim()) newFolder.mutate();
+                }}
+              >
+                <Input
+                  autoFocus
+                  value={folderName}
+                  onChange={(event) => setFolderName(event.target.value)}
+                  placeholder="Folder name"
+                />
+                <DialogFooter className="mt-4">
+                  <Button type="submit" disabled={!folderName.trim() || newFolder.isPending}>
+                    {newFolder.isPending ? "Creating..." : "Create"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+        bodyClassName={isEmpty ? undefined : "p-0 overflow-hidden"}
+      >
+        {isEmpty ? (
+          <p className="text-sm text-muted-foreground">
+            This folder is empty. Create a subfolder or upload a policy to get started.
+          </p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {subfolders.map((folder) => (
+                <TableRow
+                  key={`folder-${folder.id}`}
+                  onClick={() => setSelected(folder.id)}
+                  className="cursor-pointer"
+                >
+                  <TableCell>
+                    <span className="flex items-center gap-2.5 font-medium text-foreground">
+                      <Folder className="size-4 shrink-0 text-muted-foreground" />
+                      {folder.name}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">Folder</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {countInside(folder.id)} items
+                  </TableCell>
+                  <TableCell />
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {documents.data.results.map((document) => (
-                  <TableRow key={document.id}>
-                    <TableCell>
-                      <Link
-                        href={`/documents/${document.id}`}
-                        className="text-foreground underline-offset-2 hover:underline"
-                      >
-                        {document.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{document.doc_type}</Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {document.latest_job ? document.latest_job.status : "not analyzed"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => analyze.mutate(document.id)}
-                        disabled={analyze.isPending && analyze.variables === document.id}
-                      >
-                        {analyze.isPending && analyze.variables === document.id
-                          ? "Queued..."
-                          : "Analyze"}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No documents here. Upload a policy or procedure to get started.
-            </p>
-          )}
-        </Window>
-      </div>
+              ))}
+              {files.map((doc) => (
+                <TableRow
+                  key={`doc-${doc.id}`}
+                  onClick={() => router.push(`/documents/${doc.id}`)}
+                  className="cursor-pointer"
+                >
+                  <TableCell>
+                    <span className="flex items-center gap-2.5 text-foreground">
+                      <FileText className="size-4 shrink-0 text-muted-foreground" />
+                      {doc.name}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground uppercase">{doc.doc_type}</TableCell>
+                  <TableCell>
+                    <StatusPill doc={doc} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        analyze.mutate(doc.id);
+                      }}
+                      disabled={analyze.isPending && analyze.variables === doc.id}
+                    >
+                      {analyze.isPending && analyze.variables === doc.id ? "Queued..." : "Analyze"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Window>
     </div>
   );
 }

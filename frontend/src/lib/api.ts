@@ -78,6 +78,17 @@ export async function api<T = unknown>(
   return data as T;
 }
 
+export async function apiDownload(path: string): Promise<Blob> {
+  const headers = new Headers();
+  if (tokens.access) headers.set("Authorization", `Bearer ${tokens.access}`);
+  const res = await fetch(`${API_BASE}${path}`, { headers });
+  if (res.status === 401 && tokens.refresh && (await tryRefresh())) {
+    return apiDownload(path);
+  }
+  if (!res.ok) throw new ApiError(res.status, await parse(res));
+  return res.blob();
+}
+
 async function tryRefresh(): Promise<boolean> {
   try {
     const data = await api<{ access: string }>("/auth/token/refresh/", {

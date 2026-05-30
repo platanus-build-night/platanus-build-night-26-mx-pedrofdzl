@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import { api, apiDownload } from "@/lib/api";
 
 export type Paginated<T> = {
   count: number;
@@ -25,15 +25,33 @@ export type Fact = {
   citations?: FactCitation[];
 };
 
-export type IssueType = "unbacked" | "contradiction" | "gap" | "drift" | "stale";
+export type IssueType =
+  | "missing_policy"
+  | "missing_evidence"
+  | "implementation_gap"
+  | "contradiction"
+  | "unbacked_claim"
+  | "stale_fact"
+  | "commitment";
+export type IssueSeverity = "low" | "medium" | "high";
+export type IssueStatus = "open" | "in_progress" | "closed";
 export type Issue = {
   id: number;
   type: IssueType;
+  severity: IssueSeverity;
   requirement: number | null;
+  requirement_text: string | null;
+  questionnaire: number | null;
+  questionnaire_name: string | null;
   fact: number | null;
+  assignee: number | null;
+  assignee_email: string | null;
+  title: string;
   description: string;
-  status: "open" | "closed";
+  status: IssueStatus;
+  due_date: string | null;
   created_at: string;
+  updated_at: string;
 };
 
 export type CitedFact = { id: number; statement: string; category: string };
@@ -43,9 +61,15 @@ export type Answer = {
   text: string;
   confidence: number | null;
   status: "draft" | "approved";
+  source: "generated" | "reused";
+  reused_from: number | null;
+  reused_from_source: string | null;
+  audited_at: string | null;
   created_at: string;
   cited_facts: CitedFact[];
 };
+
+export type AppUser = { id: number; email: string };
 
 export type Requirement = {
   id: number;
@@ -53,6 +77,15 @@ export type Requirement = {
   text: string;
   category: string;
   normalized_key: string;
+  source_row: number | null;
+};
+
+export type QuestionnaireLayout = {
+  format?: "csv" | "xlsx";
+  header_row?: number;
+  question_column?: number;
+  category_column?: number | null;
+  answer_column?: number | null;
 };
 
 export type Questionnaire = {
@@ -61,7 +94,12 @@ export type Questionnaire = {
   raw_file: string | null;
   due_date: string | null;
   status: string;
+  layout: QuestionnaireLayout;
   uploaded_at: string;
+  requirement_count: number;
+  answered_count: number;
+  audited_count: number;
+  open_issue_count: number;
 };
 
 export type JobStatus = "pending" | "running" | "done" | "failed";
@@ -116,8 +154,31 @@ export const listFacts = (params?: {
   document?: number;
 }) => api<Paginated<Fact>>(`/facts/${qs(params)}`);
 
-export const listIssues = (params?: { status?: string; type?: string }) =>
-  api<Paginated<Issue>>(`/issues/${qs(params)}`);
+export const listIssues = (params?: {
+  status?: string;
+  type?: string;
+  severity?: string;
+  assignee?: number;
+  questionnaire?: number;
+  ordering?: string;
+}) => api<Paginated<Issue>>(`/issues/${qs(params)}`);
+
+export type IssueInput = {
+  type: IssueType;
+  severity?: IssueSeverity;
+  title?: string;
+  description?: string;
+  status?: IssueStatus;
+  due_date?: string | null;
+  requirement?: number | null;
+  assignee?: number | null;
+};
+
+export const createIssue = (data: IssueInput) =>
+  api<Issue>("/issues/", { method: "POST", body: JSON.stringify(data) });
+
+export const updateIssue = (id: number, data: Partial<IssueInput>) =>
+  api<Issue>(`/issues/${id}/`, { method: "PATCH", body: JSON.stringify(data) });
 
 export const listRequirements = (params?: { questionnaire?: number; search?: string }) =>
   api<Paginated<Requirement>>(`/requirements/${qs(params)}`);
@@ -125,6 +186,14 @@ export const listRequirements = (params?: { questionnaire?: number; search?: str
 export const listQuestionnaires = () => api<Paginated<Questionnaire>>("/questionnaires/");
 
 export const getQuestionnaire = (id: number) => api<Questionnaire>(`/questionnaires/${id}/`);
+
+export const submitQuestionnaire = (id: number) =>
+  api<Questionnaire>(`/questionnaires/${id}/submit/`, { method: "POST" });
+
+export const updateQuestionnaire = (id: number, data: { status?: string; due_date?: string | null }) =>
+  api<Questionnaire>(`/questionnaires/${id}/`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const listUsers = () => api<AppUser[]>("/auth/users/");
 
 export const listAnswers = (params?: { requirement?: number }) =>
   api<Paginated<Answer>>(`/answers/${qs(params)}`);
@@ -137,6 +206,9 @@ export const ingestQuestionnaire = (id: number) =>
 
 export const answerQuestionnaire = (id: number) =>
   api<{ answered: number }>(`/questionnaires/${id}/answer/`, { method: "POST" });
+
+export const exportQuestionnaire = (id: number) =>
+  apiDownload(`/questionnaires/${id}/export/`);
 
 export const answerRequirement = (id: number) =>
   api<Answer>(`/requirements/${id}/answer/`, { method: "POST" });
