@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useCopilot } from "@/lib/copilot-ui";
 
 const LABELS: Record<string, string> = {
   dashboard: "Dashboard",
@@ -20,9 +22,10 @@ const label = (seg: string) =>
 export function TopBar() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
+  const { toggle, open } = useCopilot();
 
   return (
-    <div className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur sm:px-6">
+    <div className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b border-border bg-background px-4 sm:px-6">
       <nav className="flex items-center gap-1.5 text-sm">
         <Link
           href="/dashboard"
@@ -50,10 +53,18 @@ export function TopBar() {
           );
         })}
       </nav>
-      <div
-        id="topbar-actions"
-        className="ml-auto flex items-center gap-2"
-      />
+      <div className="ml-auto flex items-center gap-2">
+        <div id="topbar-actions" className="flex items-center gap-2" />
+        <Button
+          variant={open ? "secondary" : "ghost"}
+          size="sm"
+          className="gap-1.5"
+          onClick={toggle}
+        >
+          <Sparkles className="size-4" />
+          Copilot
+        </Button>
+      </div>
     </div>
   );
 }

@@ -4,23 +4,34 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import {
   ClipboardList,
   Database,
   LayoutDashboard,
   LogOut,
-  MessageSquare,
+  Moon,
+  Sun,
   TriangleAlert,
+  UserCog,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { CopilotProvider } from "@/lib/copilot-ui";
 import { cn } from "@/lib/utils";
+import { CopilotPanel } from "@/components/copilot-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { TopBar } from "@/components/top-bar";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/copilot", label: "Copilot", icon: MessageSquare },
   { href: "/requirements", label: "Requirements", icon: ClipboardList },
   { href: "/issues", label: "Issues", icon: TriangleAlert },
   { href: "/facts", label: "Fact Base", icon: Database },
@@ -30,6 +41,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -44,93 +57,94 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-full">
-      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
-        <div className="flex h-12 items-center gap-2.5 px-4">
-          <Image src="/ditto.png" alt="Ditto" width={24} height={24} className="size-6" />
-          <div className="flex flex-col leading-none">
-            <span className="text-sm tracking-tight">Ditto</span>
-            <span className="text-[11px] text-muted-foreground">Compliance</span>
+    <CopilotProvider>
+      <div className="flex min-h-full">
+        <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
+          <div className="flex h-12 items-center gap-2.5 px-4">
+            <Image src="/ditto.png" alt="Ditto" width={24} height={24} className="size-6 rounded-md" />
+            <div className="flex flex-col leading-none">
+              <span className="text-sm tracking-tight">Ditto</span>
+              <span className="text-[11px] text-muted-foreground">Compliance</span>
+            </div>
           </div>
-        </div>
 
-        <nav className="flex-1 px-2 py-2">
-          <p className="px-2.5 pb-1.5 text-[11px] tracking-wider text-muted-foreground/70 uppercase">
-            Workspace
-          </p>
-          <div className="space-y-0.5">
-            {NAV.map((item) => {
-              const active = pathname.startsWith(item.href);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-2.5 px-2.5 py-1.5 text-sm transition-colors",
-                    active
-                      ? "bg-accent text-foreground"
-                      : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                  )}
-                >
-                  <Icon
+          <nav className="flex-1 px-2 py-2">
+            <p className="px-2.5 pb-1.5 text-[11px] tracking-wider text-muted-foreground/70 uppercase">
+              Workspace
+            </p>
+            <div className="space-y-0.5">
+              {NAV.map((item) => {
+                const active = pathname.startsWith(item.href);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
                     className={cn(
-                      "size-4 shrink-0",
-                      active ? "text-brand" : "text-muted-foreground",
+                      "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                      active
+                        ? "bg-accent text-foreground"
+                        : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                     )}
-                  />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
+                  >
+                    <Icon
+                      className={cn(
+                        "size-4 shrink-0",
+                        active ? "text-brand" : "text-muted-foreground",
+                      )}
+                    />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
 
-        <div className="border-t border-border p-2">
-          <Link
-            href="/account"
-            className={cn(
-              "flex items-center gap-2.5 px-2.5 py-2 text-sm transition-colors",
-              pathname.startsWith("/account")
-                ? "bg-accent text-foreground"
-                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-            )}
-          >
-            <span className="grid size-7 shrink-0 place-items-center border border-border bg-background text-xs">
-              {user.email[0]?.toUpperCase()}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-foreground">
-              {user.email}
-            </span>
-          </Link>
-          <div className="mt-1 flex items-center gap-1">
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 justify-start gap-2 text-muted-foreground"
-              onClick={logout}
-            >
-              <LogOut className="size-4" />
-              Sign out
-            </Button>
+          <div className="border-t border-border p-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-accent">
+                <span className="grid size-7 shrink-0 place-items-center rounded-md border border-border bg-background text-xs">
+                  {user.email[0]?.toUpperCase()}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-left text-foreground">
+                  {user.email}
+                </span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="start" className="min-w-52">
+                <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/account")}>
+                  <UserCog className="size-4" />
+                  Account
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
+                  {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                  Appearance
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="size-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex h-12 items-center gap-2 border-b border-border px-4 md:hidden">
+            <Image src="/ditto.png" alt="Ditto" width={20} height={20} className="size-5 rounded-md" />
+            <span className="text-sm tracking-tight">Ditto</span>
+            <div className="ml-auto">
+              <ThemeToggle />
+            </div>
+          </header>
+          <TopBar />
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">{children}</main>
         </div>
-      </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-12 items-center gap-2 border-b border-border px-4 md:hidden">
-          <Image src="/ditto.png" alt="Ditto" width={20} height={20} className="size-5" />
-          <span className="text-sm tracking-tight">Ditto</span>
-          <div className="ml-auto">
-            <ThemeToggle />
-          </div>
-        </header>
-        <TopBar />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
-          {children}
-        </main>
+        <CopilotPanel />
       </div>
-    </div>
+    </CopilotProvider>
   );
 }
