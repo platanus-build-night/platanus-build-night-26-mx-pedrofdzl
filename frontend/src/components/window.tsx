@@ -14,7 +14,7 @@ export function Window({
   children: React.ReactNode;
 }) {
   return (
-    <section className={cn("border border-border bg-card", className)}>
+    <section className={cn("rounded-lg border border-border bg-card", className)}>
       <header className="flex h-10 items-center justify-between border-b border-border px-3">
         <h2 className="text-sm font-medium tracking-tight">{title}</h2>
         {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
@@ -42,7 +42,7 @@ export function Stat({
     warning: "text-warning",
   }[tone];
   return (
-    <div className="border border-border bg-card p-3">
+    <div className="rounded-lg border border-border bg-card p-3">
       <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
         {label}
       </div>
