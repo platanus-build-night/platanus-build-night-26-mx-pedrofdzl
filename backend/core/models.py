@@ -167,7 +167,7 @@ class Requirement(models.Model):
     )
     text = models.TextField()
     category = models.CharField(max_length=120, blank=True)
-    normalized_key = models.CharField(max_length=255, blank=True, db_index=True)
+    normalized_key = models.TextField(blank=True, db_index=True)
     source_row = models.IntegerField(null=True, blank=True)
     embedding = VectorField(dimensions=EMBEDDING_DIM, null=True, blank=True)
 
