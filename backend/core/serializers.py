@@ -1,33 +1,100 @@
 from rest_framework import serializers
 
 from core.models import (
+    AnalysisJob,
     Answer,
-    EvidenceDoc,
+    Category,
+    Document,
     Fact,
+    FactCitation,
     Issue,
     Questionnaire,
     Requirement,
 )
 
 
-class EvidenceDocSerializer(serializers.ModelSerializer):
+def _job_percent(job):
+    return round(100 * job.processed / job.total) if job.total else 0
+
+
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = EvidenceDoc
+        model = Category
+        fields = ["id", "name", "parent", "created_at"]
+
+
+class AnalysisJobSerializer(serializers.ModelSerializer):
+    percent = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AnalysisJob
+        fields = [
+            "id",
+            "document",
+            "status",
+            "step",
+            "processed",
+            "total",
+            "facts_created",
+            "percent",
+            "error",
+            "created_at",
+            "started_at",
+            "finished_at",
+        ]
+
+    def get_percent(self, obj):
+        return _job_percent(obj)
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+    latest_job = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Document
         fields = [
             "id",
             "name",
             "content",
             "source_file",
+            "doc_type",
+            "category",
             "style_guide_section",
             "created_at",
             "updated_at",
+            "latest_job",
         ]
+
+    def get_latest_job(self, obj):
+        job = obj.analysis_jobs.first()
+        if job is None:
+            return None
+        return {"id": job.id, "status": job.status, "step": job.step, "percent": _job_percent(job)}
+
+
+class FactCitationSerializer(serializers.ModelSerializer):
+    chunk_text = serializers.CharField(source="chunk.text", read_only=True, default=None)
+
+    class Meta:
+        model = FactCitation
+        fields = ["id", "document", "chunk", "chunk_text"]
 
 
 class FactSerializer(serializers.ModelSerializer):
+    citations = FactCitationSerializer(many=True, read_only=True)
+
     class Meta:
         model = Fact
-        fields = ["id", "statement", "category", "status", "confidence", "review_by", "created_at"]
+        fields = [
+            "id",
+            "statement",
+            "category",
+            "status",
+            "confidence",
+            "review_by",
+            "created_at",
+            "citations",
+        ]
 
 
 class CitedFactSerializer(serializers.ModelSerializer):

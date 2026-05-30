@@ -2,9 +2,11 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from core.views import (
+    AnalysisJobViewSet,
     AnswerViewSet,
+    CategoryViewSet,
     CopilotChatView,
-    EvidenceDocViewSet,
+    DocumentViewSet,
     FactViewSet,
     IssueViewSet,
     QuestionnaireViewSet,
@@ -12,7 +14,9 @@ from core.views import (
 )
 
 router = DefaultRouter()
-router.register("evidence-docs", EvidenceDocViewSet)
+router.register("categories", CategoryViewSet)
+router.register("documents", DocumentViewSet)
+router.register("analysis-jobs", AnalysisJobViewSet)
 router.register("facts", FactViewSet)
 router.register("questionnaires", QuestionnaireViewSet)
 router.register("requirements", RequirementViewSet)

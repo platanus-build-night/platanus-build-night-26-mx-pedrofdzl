@@ -1,15 +1,28 @@
+import django_filters
 from django.http import StreamingHttpResponse
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import Answer, EvidenceDoc, Fact, Issue, Questionnaire, Requirement
+from core.models import (
+    AnalysisJob,
+    Answer,
+    Category,
+    Document,
+    Fact,
+    Issue,
+    Questionnaire,
+    Requirement,
+)
 from core.serializers import (
+    AnalysisJobSerializer,
     AnswerSerializer,
+    CategorySerializer,
     ChatRequestSerializer,
-    EvidenceDocSerializer,
+    DocumentSerializer,
     FactSerializer,
     IssueSerializer,
     QuestionnaireSerializer,
@@ -17,29 +30,94 @@ from core.serializers import (
 )
 from core.services.auditor import audit_answer
 from core.services.copilot import stream_chat
-from core.services.ingest import ingest_document
+from core.services.ingest import run_pipeline
 from core.services.questionnaire_ingest import ingest_questionnaire
 from core.services.responder import answer_requirement
 
 SUMMARY = OpenApiResponse(description="Operation summary")
 
 
-class EvidenceDocViewSet(viewsets.ModelViewSet):
-    queryset = EvidenceDoc.objects.all()
-    serializer_class = EvidenceDocSerializer
+def run_analysis(job):
+    job.status = AnalysisJob.Status.RUNNING
+    job.started_at = timezone.now()
+    job.save(update_fields=["status", "started_at", "updated_at"])
+    try:
+        result = run_pipeline(job.document, job=job, reset=True)
+        job.status = AnalysisJob.Status.DONE
+        job.facts_created = result["facts"]
+    except Exception as exc:  # noqa: BLE001
+        job.status = AnalysisJob.Status.FAILED
+        job.error = str(exc)
+    job.finished_at = timezone.now()
+    job.save()
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filterset_fields = ["parent"]
+
+
+class DocumentViewSet(viewsets.ModelViewSet):
+    queryset = Document.objects.all()
+    serializer_class = DocumentSerializer
+    filterset_fields = ["category", "doc_type"]
     search_fields = ["name", "content"]
 
-    @extend_schema(request=None, responses=SUMMARY)
+    @extend_schema(request=None, responses=AnalysisJobSerializer)
     @action(detail=True, methods=["post"])
-    def ingest(self, request, pk=None):
-        return Response(ingest_document(self.get_object()))
+    def analyze(self, request, pk=None):
+        job = AnalysisJob.objects.create(document=self.get_object())
+        run_analysis(job)
+        return Response(AnalysisJobSerializer(job).data, status=status.HTTP_202_ACCEPTED)
+
+    @extend_schema(request=None, responses=AnalysisJobSerializer)
+    @action(detail=True, methods=["put", "post"])
+    def content(self, request, pk=None):
+        document = self.get_object()
+        if "content" in request.data:
+            document.content = request.data["content"]
+            document.save(update_fields=["content", "updated_at"])
+        job = AnalysisJob.objects.create(document=document)
+        run_analysis(job)
+        return Response(AnalysisJobSerializer(job).data, status=status.HTTP_202_ACCEPTED)
+
+
+class AnalysisJobViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = AnalysisJob.objects.all()
+    serializer_class = AnalysisJobSerializer
+    filterset_fields = ["document", "status"]
+
+
+class FactFilter(django_filters.FilterSet):
+    document = django_filters.NumberFilter(field_name="citations__document", distinct=True)
+
+    class Meta:
+        model = Fact
+        fields = ["status", "category", "document"]
 
 
 class FactViewSet(viewsets.ModelViewSet):
     queryset = Fact.objects.all()
     serializer_class = FactSerializer
-    filterset_fields = ["status", "category"]
+    filterset_class = FactFilter
     search_fields = ["statement"]
+
+    @extend_schema(request=None, responses=FactSerializer)
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        fact = self.get_object()
+        fact.status = Fact.Status.APPROVED
+        fact.save(update_fields=["status", "updated_at"])
+        return Response(FactSerializer(fact).data)
+
+    @extend_schema(request=None, responses=FactSerializer)
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        fact = self.get_object()
+        fact.status = Fact.Status.REJECTED
+        fact.save(update_fields=["status", "updated_at"])
+        return Response(FactSerializer(fact).data)
 
 
 class QuestionnaireViewSet(viewsets.ModelViewSet):

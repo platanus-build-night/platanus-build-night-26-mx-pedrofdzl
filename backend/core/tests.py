@@ -8,8 +8,8 @@ from core.models import (
     EMBEDDING_DIM,
     Answer,
     AnswerCitation,
-    EvidenceChunk,
-    EvidenceDoc,
+    Document,
+    DocumentChunk,
     Fact,
     FactCitation,
     Issue,
@@ -17,7 +17,7 @@ from core.models import (
     Requirement,
 )
 from core.services.auditor import audit_answer
-from core.services.ingest import ingest_document
+from core.services.ingest import run_pipeline
 from core.services.questionnaire_ingest import ingest_questionnaire
 from core.services.responder import answer_requirement
 
@@ -47,15 +47,15 @@ class IngestTests(TestCase):
             {"statement": "Data is encrypted at rest with AES-256", "category": "encryption"}
         ]
         mock_embed.side_effect = lambda statements: [unit_vector(0) for _ in statements]
-        doc = EvidenceDoc.objects.create(name="Security Policy", content="First.\n\nSecond.")
+        doc = Document.objects.create(name="Security Policy", content="First.\n\nSecond.")
 
-        summary = ingest_document(doc)
+        summary = run_pipeline(doc)
 
-        self.assertEqual(summary["chunks"], EvidenceChunk.objects.count())
+        self.assertEqual(summary["chunks"], DocumentChunk.objects.count())
         self.assertEqual(summary["facts"], Fact.objects.count())
         fact = Fact.objects.get()
         self.assertIsNotNone(fact.embedding)
-        self.assertTrue(FactCitation.objects.filter(fact=fact, evidence_doc=doc).exists())
+        self.assertTrue(FactCitation.objects.filter(fact=fact, document=doc).exists())
 
 
 class QuestionnaireIngestTests(TestCase):
