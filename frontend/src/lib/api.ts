@@ -56,7 +56,7 @@ export async function api<T = unknown>(
 ): Promise<T> {
   const { auth = true, retry = true, headers, ...rest } = options;
   const finalHeaders = new Headers(headers);
-  if (rest.body && !finalHeaders.has("Content-Type")) {
+  if (rest.body && !(rest.body instanceof FormData) && !finalHeaders.has("Content-Type")) {
     finalHeaders.set("Content-Type", "application/json");
   }
   if (auth && tokens.access) {

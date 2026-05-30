@@ -87,3 +87,30 @@ export const listRequirements = (params?: { questionnaire?: number; search?: str
 export const listQuestionnaires = () => api<Paginated<Questionnaire>>("/questionnaires/");
 
 export const listEvidenceDocs = () => api<Paginated<EvidenceDoc>>("/evidence-docs/");
+
+export const getQuestionnaire = (id: number) => api<Questionnaire>(`/questionnaires/${id}/`);
+
+export const getEvidenceDoc = (id: number) => api<EvidenceDoc>(`/evidence-docs/${id}/`);
+
+export const listAnswers = (params?: { requirement?: number }) =>
+  api<Paginated<Answer>>(`/answers/${qs(params)}`);
+
+export const uploadQuestionnaire = (form: FormData) =>
+  api<Questionnaire>("/questionnaires/", { method: "POST", body: form });
+
+export const ingestQuestionnaire = (id: number) =>
+  api<{ requirements: number }>(`/questionnaires/${id}/ingest/`, { method: "POST" });
+
+export const answerQuestionnaire = (id: number) =>
+  api<{ answered: number }>(`/questionnaires/${id}/answer/`, { method: "POST" });
+
+export const answerRequirement = (id: number) =>
+  api<Answer>(`/requirements/${id}/answer/`, { method: "POST" });
+
+export const auditAnswer = (id: number) => api<Issue[]>(`/answers/${id}/audit/`, { method: "POST" });
+
+export const createEvidenceDoc = (data: { name: string; content: string }) =>
+  api<EvidenceDoc>("/evidence-docs/", { method: "POST", body: JSON.stringify(data) });
+
+export const ingestEvidenceDoc = (id: number) =>
+  api<{ chunks: number; facts: number }>(`/evidence-docs/${id}/ingest/`, { method: "POST" });
